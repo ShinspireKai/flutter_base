@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../main.dart';
 import '../../view/res/string_manager.dart';
+import '../l10n/app_localizations.dart';
 import 'failure.dart';
 
 class ErrorHandler implements Exception {

@@ -1,10 +1,10 @@
 name: flutter_base_project
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.4.4 <4.0.0'
+  sdk: ">=3.4.4 <4.0.0"
 
 dependencies:
   auto_route: ^9.2.2
@@ -18,22 +18,30 @@ dependencies:
   flutter_svg: ^2.0.10+1
   get_it: ^7.7.0
   injectable: ^2.4.4
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+  dartz: ^0.10.1
   internet_connection_checker: ^1.0.0+1
   intl: any
   isar: ^3.1.0+1
   pretty_dio_logger: ^1.4.0
   shared_preferences: ^2.3.2
+  fluttertoast: ^9.0.0
+  flutter_easyloading: ^3.0.5
 
 dev_dependencies:
-  auto_route_generator: 9.0.0
+  auto_route_generator: ^9.3.1
   injectable_generator:
-  build_runner: '>=2.3.0 <4.0.0'
+  build_runner: ^2.4.13
   flutter_gen_runner:
   flutter_test:
     sdk: flutter
 
   json_serializable: ^6.2.0
   flutter_lints: ^4.0.0
+
+dependency_overrides:
+  dart_style: ^3.1.0
 
 flutter:
   uses-material-design: true

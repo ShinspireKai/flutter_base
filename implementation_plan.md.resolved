@@ -1,0 +1,163 @@
+# Login & Home - Clean Architecture + BLoC
+
+Xây dựng 2 màn hình mẫu (Login & Home) trên nền `flutter_base_project` đã có sẵn. Dự án đang dùng: **GetIt/Injectable** (DI), **Dio** (Network), **auto_route** (Router), **flutter_gen** (Assets/Colors).
+
+Cần bổ sung: `flutter_bloc`, `equatable`, `dartz` để hoàn chỉnh Clean Architecture + BLoC.
+
+## Kiến trúc tổng thể
+
+```
+lib/
+├── core/               # ✅ Đã có (DI, network, router, local, theme)
+├── mvp/                # ✅ Đã có (giữ nguyên)
+├── features/
+│   ├── auth/
+│   │   ├── domain/     # Entities, Repository abstraction, UseCases
+│   │   ├── data/       # Models, DataSources, Repository impl
+│   │   └── presentation/ # BLoC, Pages, Widgets
+│   └── home/
+│       ├── domain/
+│       ├── data/
+│       └── presentation/
+└── view/               # ✅ Đã có (widgets, res/theme)
+```
+
+## Proposed Changes
+
+---
+
+### Dependencies
+
+#### [MODIFY] [pubspec.yaml](file:///Users/vutruong/development/flutter_base/flutter_base_project/pubspec.yaml)
+Thêm vào [dependencies](file:///Users/vutruong/development/flutter_base/flutter_base_project/.flutter-plugins-dependencies):
+- `flutter_bloc: ^8.1.6`
+- `equatable: ^2.0.5`
+- `dartz: ^0.10.1`
+
+---
+
+### Core - Base Classes
+
+#### [NEW] `lib/core/usecases/usecase.dart`
+Abstract class `UseCase<Type, Params>` — interface chung cho tất cả use cases (Single Responsibility, Open/Closed).
+
+#### [NEW] `lib/core/usecases/no_params.dart`
+Class `NoParams` extends `Equatable` — dùng khi UseCase không cần params.
+
+#### [NEW] `lib/core/error/failures.dart`
+[Failure](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/network/error_handle.dart#63-109) abstract class và các subclass: `ServerFailure`, `NetworkFailure`, `CacheFailure`.
+
+---
+
+### Feature: Auth
+
+#### [NEW] `lib/features/auth/domain/entities/user_entity.dart`
+Data class thuần túy (không phụ thuộc framework), dùng `Equatable`.
+
+#### [NEW] `lib/features/auth/domain/repositories/auth_repository.dart`
+Abstract interface (Dependency Inversion Principle):
+```dart
+abstract class AuthRepository {
+  Future<Either<Failure, UserEntity>> login(String email, String password);
+  Future<Either<Failure, bool>> logout();
+  Future<Either<Failure, bool>> isLoggedIn();
+}
+```
+
+#### [NEW] `lib/features/auth/domain/usecases/login_usecase.dart`
+`LoginUseCase` extends `UseCase<UserEntity, LoginParams>`.
+
+#### [NEW] `lib/features/auth/domain/usecases/logout_usecase.dart`
+`LogoutUseCase` extends `UseCase<bool, NoParams>`.
+
+#### [NEW] `lib/features/auth/data/models/user_model.dart`
+`UserModel` extends `UserEntity`, hỗ trợ `fromJson`/`toJson`.
+
+#### [NEW] `lib/features/auth/data/datasources/auth_remote_datasource.dart`
+Abstract + Impl: gọi API login qua [ApiService](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/network/api_service.dart#10-103).
+
+#### [NEW] `lib/features/auth/data/datasources/auth_local_datasource.dart`
+Abstract + Impl: lưu/đọc token từ [LocalStorage](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/local/local_storage.dart#23-43).
+
+#### [NEW] `lib/features/auth/data/repositories/auth_repository_impl.dart`
+`AuthRepositoryImpl` implements `AuthRepository` (Dependency Inversion).
+
+#### [NEW] `lib/features/auth/presentation/bloc/login_bloc.dart`
+`LoginBloc` xử lý: `LoginSubmitted` event → `LoginLoading`, `LoginSuccess`, `LoginFailure` states.
+
+#### [NEW] `lib/features/auth/presentation/pages/login_page.dart`
+UI với form email/password, nút Login. BlocListener navigate tới Home khi success.
+
+#### [NEW] `lib/features/auth/presentation/widgets/login_form.dart`
+Widget form tách riêng (Single Responsibility).
+
+---
+
+### Feature: Home
+
+#### [NEW] `lib/features/home/domain/entities/user_profile_entity.dart`
+Entity cho profile user trên trang Home.
+
+#### [NEW] `lib/features/home/domain/repositories/home_repository.dart`
+```dart
+abstract class HomeRepository {
+  Future<Either<Failure, UserProfileEntity>> getUserProfile();
+}
+```
+
+#### [NEW] `lib/features/home/domain/usecases/get_user_profile_usecase.dart`
+`GetUserProfileUseCase` extends `UseCase<UserProfileEntity, NoParams>`.
+
+#### [NEW] `lib/features/home/data/models/user_profile_model.dart`
+`UserProfileModel` extends `UserProfileEntity`.
+
+#### [NEW] `lib/features/home/data/datasources/home_remote_datasource.dart`
+Abstract + Impl, giả lập dữ liệu mock (demo).
+
+#### [NEW] `lib/features/home/data/repositories/home_repository_impl.dart`
+`HomeRepositoryImpl` implements `HomeRepository`.
+
+#### [NEW] `lib/features/home/presentation/bloc/home_bloc.dart`
+`HomeBloc` xử lý: `LoadUserProfile` → `HomeLoaded`, `HomeLoading`, `HomeError`.
+
+#### [NEW] `lib/features/home/presentation/pages/home_page.dart`
+Trang Home hiển thị profile card, greeting, logout button.
+
+#### [NEW] `lib/features/home/presentation/widgets/profile_card.dart`
+Widget hiển thị thông tin user (avatar, tên, email).
+
+---
+
+### Core Updates
+
+#### [MODIFY] [auto_route_config.dart](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/router/auto_route_config.dart)
+Thêm `LoginRoute`, `HomeRoute` vào routes.
+
+#### [MODIFY] [main.dart](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/main.dart)
+Thêm [AppRouter](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/router/auto_route_config.dart#7-14), dùng `MaterialApp.router`, `MultiBlocProvider`.
+
+#### [MODIFY] [di.config.dart](file:///Users/vutruong/development/flutter_base/flutter_base_project/lib/core/di.config.dart)
+Regenerate sau khi thêm `@injectable` annotations cho Repositories, DataSources, UseCases.
+
+---
+
+## Verification Plan
+
+### Automated Tests (Static Analysis)
+```bash
+cd /Users/vutruong/development/flutter_base/flutter_base_project
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze
+```
+
+### Manual Verification - Chạy App
+```bash
+cd /Users/vutruong/development/flutter_base/flutter_base_project
+flutter run
+```
+Kiểm tra:
+1. App mở → màn hình Login hiển thị đúng UI (form email, password, nút Login)
+2. Nhập email: `test@example.com`, password: `password123` → navigate sang Home
+3. Trang Home hiển thị profile card, tên user, email
+4. Nhấn Logout → quay về màn hình Login
