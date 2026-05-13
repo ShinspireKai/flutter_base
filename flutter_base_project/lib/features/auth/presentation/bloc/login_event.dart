@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Events cho LoginBloc
-/// Open/Closed: thêm event mới không cần sửa BLoC handler logic cũ
+/// Login Events — Open/Closed: thêm event mới không sửa handler cũ
 abstract class LoginEvent extends Equatable {
   const LoginEvent();
 
@@ -9,7 +8,7 @@ abstract class LoginEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event khi user nhấn nút login
+/// User nhấn nút đăng nhập
 class LoginSubmitted extends LoginEvent {
   final String email;
   final String password;
@@ -20,12 +19,12 @@ class LoginSubmitted extends LoginEvent {
   List<Object?> get props => [email, password];
 }
 
-/// Event reset về trạng thái ban đầu
+/// Reset về trạng thái ban đầu (sau khi xử lý error/success)
 class LoginReset extends LoginEvent {
   const LoginReset();
 }
 
-/// Event toggle show/hide password
+/// Toggle hiển thị mật khẩu
 class LoginPasswordVisibilityToggled extends LoginEvent {
   const LoginPasswordVisibilityToggled();
 }

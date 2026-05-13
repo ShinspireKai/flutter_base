@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/widgets.dart';
 
+/// Interface cho View trong MVP pattern
+/// Interface Segregation: chỉ khai báo những gì View cần expose cho Presenter
 abstract class IView {
-  Future<dynamic> routePush(Widget page, {String routeName});
-  void routePushAndRemoveUntil(Widget page, {String routeName});
-  void showToast(String msg, {ToastGravity gravity});
   void showLoading();
   void hideLoading();
-  Future<dynamic> showMsg(String msg, {int code = 1,  void Function() onFinish});
-  void showCustomDialog(String title, String msg, Map<String, Function()> actions);
+  void showToast(String msg);
+  Future<dynamic> showMsg(String? msg, {int code, void Function()? onFinish});
+  Future<dynamic> routePush(Widget page, {String? routeName, Function()? action});
+  void routePushAndRemoveUntil(Widget page, {String? routeName});
 }

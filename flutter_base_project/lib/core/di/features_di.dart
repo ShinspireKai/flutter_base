@@ -13,12 +13,18 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Setup DI cho toàn bộ features
-/// Dependency Inversion: register abstractions (interfaces), resolve implementations
+///
+/// Nguyên tắc Dependency Inversion:
+/// - Register theo interface (abstraction)
+/// - Resolve implementation tại đây — không ở nơi khác
 Future<void> setupFeaturesDI(GetIt sl) async {
-  //== Auth Feature ==//
+  final sharedPreferences = await SharedPreferences.getInstance();
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Auth Feature
+  // ═══════════════════════════════════════════════════════════════════════
 
   // Data Sources
-  final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sharedPreferences),
   );
@@ -26,7 +32,7 @@ Future<void> setupFeaturesDI(GetIt sl) async {
     () => AuthRemoteDataSourceImpl(),
   );
 
-  // Repository
+  // Repository — inject abstractions vào implementation
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl<AuthRemoteDataSource>(),
@@ -34,12 +40,14 @@ Future<void> setupFeaturesDI(GetIt sl) async {
     ),
   );
 
-  // Use Cases
+  // Use Cases — registerFactory vì mỗi BLoC cần instance riêng
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => CheckLoginStatusUseCase(sl<AuthRepository>()));
 
-  //== Home Feature ==//
+  // ═══════════════════════════════════════════════════════════════════════
+  // Home Feature
+  // ═══════════════════════════════════════════════════════════════════════
 
   // Data Sources
   sl.registerLazySingleton<HomeRemoteDataSource>(
@@ -48,7 +56,9 @@ Future<void> setupFeaturesDI(GetIt sl) async {
 
   // Repository
   sl.registerLazySingleton<HomeRepository>(
-    () => HomeRepositoryImpl(remoteDataSource: sl<HomeRemoteDataSource>()),
+    () => HomeRepositoryImpl(
+      remoteDataSource: sl<HomeRemoteDataSource>(),
+    ),
   );
 
   // Use Cases

@@ -4,8 +4,13 @@ import '../../domain/usecases/login_usecase.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 
-/// LoginBloc — Single Responsibility: chỉ xử lý logic login state management
-/// Dependency Inversion: phụ thuộc vào UseCase abstraction
+/// LoginBloc — Single Responsibility: chỉ xử lý login state
+///
+/// Flow:
+///   LoginSubmitted → LoginLoading → LoginSuccess | LoginFailure
+///   LoginPasswordVisibilityToggled → cập nhật UI state
+///
+/// Dependency Inversion: phụ thuộc vào LoginUseCase (abstraction)
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginUseCase _loginUseCase;
 
@@ -41,11 +46,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginPasswordVisibilityToggled event,
     Emitter<LoginState> emit,
   ) {
-    if (state is LoginInitial) {
-      final currentState = state as LoginInitial;
-      emit(LoginInitial(
-        isPasswordVisible: !currentState.isPasswordVisible,
-      ));
+    // Chỉ toggle khi đang ở LoginInitial (không toggle lúc loading)
+    final current = state;
+    if (current is LoginInitial) {
+      emit(current.copyWith(isPasswordVisible: !current.isPasswordVisible));
     }
   }
 }

@@ -1,24 +1,22 @@
 import 'package:dio/dio.dart';
-import '../../main.dart';
-import '../../view/res/string_manager.dart';
-import '../l10n/app_localizations.dart';
+
 import 'failure.dart';
 
+/// ErrorHandler — map DioException → Failure
+/// Không còn phụ thuộc vào navigatorKey hay context
 class ErrorHandler implements Exception {
   late Failure failure;
 
   ErrorHandler.handle(dynamic error) {
     if (error is DioException) {
-      // dio error so its an error from response of the API or from dio itself
-      failure = _handleError(error);
+      failure = _handleDioError(error);
     } else {
-      // default error
       failure = DataSource.DEFAULT.getFailure();
     }
   }
 }
 
-Failure _handleError(DioException error) {
+Failure _handleDioError(DioException error) {
   switch (error.type) {
     case DioExceptionType.connectionTimeout:
       return DataSource.CONNECT_TIMEOUT.getFailure();
@@ -27,18 +25,30 @@ Failure _handleError(DioException error) {
     case DioExceptionType.receiveTimeout:
       return DataSource.RECIEVE_TIMEOUT.getFailure();
     case DioExceptionType.badResponse:
-      if (error.response != null &&
-          error.response?.statusCode != null &&
-          error.response?.statusMessage != null) {
-        return Failure(error.response?.statusCode ?? 0,
-            error.response?.data["message"] ?? "");
-      } else {
-        return DataSource.DEFAULT.getFailure();
-      }
+      final statusCode = error.response?.statusCode ?? 0;
+      final message = _extractMessage(error.response?.data) ?? _messageForCode(statusCode);
+      return Failure(statusCode, message);
     case DioExceptionType.cancel:
       return DataSource.CANCEL.getFailure();
     default:
       return DataSource.DEFAULT.getFailure();
+  }
+}
+
+String? _extractMessage(dynamic data) {
+  try {
+    if (data is Map) return data['message']?.toString();
+  } catch (_) {}
+  return null;
+}
+
+String _messageForCode(int code) {
+  switch (code) {
+    case ResponseCode.UNAUTORISED: return 'Không có quyền truy cập';
+    case ResponseCode.FORBIDDEN: return 'Bị từ chối truy cập';
+    case ResponseCode.NOT_FOUND: return 'Không tìm thấy tài nguyên';
+    case ResponseCode.INTERNAL_SERVER_ERROR: return 'Lỗi máy chủ';
+    default: return 'Đã có lỗi xảy ra';
   }
 }
 
@@ -61,63 +71,49 @@ enum DataSource {
 
 extension DataSourceExtension on DataSource {
   Failure getFailure() {
-    var mContext = navigatorKey!.currentState!.context;
     switch (this) {
       case DataSource.SUCCESS:
-        return Failure(
-            ResponseCode.SUCCESS, AppLocalizations.of(mContext)!.success);
+        return Failure(ResponseCode.SUCCESS, 'Thành công');
       case DataSource.NO_CONTENT:
-        return Failure(
-            ResponseCode.NO_CONTENT, AppLocalizations.of(mContext)!.no_content);
+        return Failure(ResponseCode.NO_CONTENT, 'Không có dữ liệu');
       case DataSource.BAD_REQUEST:
-        return Failure(ResponseCode.BAD_REQUEST,
-            AppLocalizations.of(mContext)!.bad_request_error);
+        return Failure(ResponseCode.BAD_REQUEST, 'Yêu cầu không hợp lệ');
       case DataSource.FORBIDDEN:
-        return Failure(ResponseCode.FORBIDDEN,
-            AppLocalizations.of(mContext)!.forbidden_error);
+        return Failure(ResponseCode.FORBIDDEN, 'Bị từ chối truy cập');
       case DataSource.UNAUTORISED:
-        return Failure(ResponseCode.UNAUTORISED,
-            AppLocalizations.of(mContext)!.unauthorized_error);
+        return Failure(ResponseCode.UNAUTORISED, 'Không có quyền truy cập');
       case DataSource.NOT_FOUND:
-        return Failure(ResponseCode.NOT_FOUND,
-            AppLocalizations.of(mContext)!.not_found_error);
+        return Failure(ResponseCode.NOT_FOUND, 'Không tìm thấy tài nguyên');
       case DataSource.INTERNAL_SERVER_ERROR:
-        return Failure(ResponseCode.INTERNAL_SERVER_ERROR,
-            AppLocalizations.of(mContext)!.internal_server_error);
+        return Failure(ResponseCode.INTERNAL_SERVER_ERROR, 'Lỗi máy chủ');
       case DataSource.CONNECT_TIMEOUT:
-        return Failure(ResponseCode.CONNECT_TIMEOUT,
-            AppLocalizations.of(mContext)!.timeout_error);
+        return Failure(ResponseCode.CONNECT_TIMEOUT, 'Kết nối bị timeout');
       case DataSource.CANCEL:
-        return Failure(ResponseCode.CANCEL, "");
+        return Failure(ResponseCode.CANCEL, 'Yêu cầu bị huỷ');
       case DataSource.RECIEVE_TIMEOUT:
-        return Failure(ResponseCode.RECIEVE_TIMEOUT,
-            AppLocalizations.of(mContext)!.timeout_error);
+        return Failure(ResponseCode.RECIEVE_TIMEOUT, 'Nhận dữ liệu bị timeout');
       case DataSource.SEND_TIMEOUT:
-        return Failure(ResponseCode.SEND_TIMEOUT,
-            AppLocalizations.of(mContext)!.timeout_error);
+        return Failure(ResponseCode.SEND_TIMEOUT, 'Gửi dữ liệu bị timeout');
       case DataSource.CACHE_ERROR:
-        return Failure(ResponseCode.CACHE_ERROR,
-            AppLocalizations.of(mContext)!.cache_error);
+        return Failure(ResponseCode.CACHE_ERROR, 'Lỗi đọc/ghi cache');
       case DataSource.NO_INTERNET_CONNECTION:
-        return Failure(ResponseCode.NO_INTERNET_CONNECTION,
-            AppLocalizations.of(mContext)!.no_internet_error);
+        return Failure(ResponseCode.NO_INTERNET_CONNECTION, 'Không có kết nối mạng');
       case DataSource.DEFAULT:
-        return Failure(
-            ResponseCode.DEFAULT, AppLocalizations.of(mContext)!.default_error);
+        return Failure(ResponseCode.DEFAULT, 'Đã có lỗi xảy ra');
     }
   }
 }
 
 class ResponseCode {
-  static const int SUCCESS = 200; // success with data
-  static const int NO_CONTENT = 201; // success with no data (no content)
-  static const int BAD_REQUEST = 400; // failure, API rejected request
-  static const int UNAUTORISED = 401; // failure, user is not authorised
-  static const int FORBIDDEN = 403; //  failure, API rejected request
-  static const int INTERNAL_SERVER_ERROR = 500; // failure, crash in server side
-  static const int NOT_FOUND = 404; // failure, not found
+  static const int SUCCESS = 200;
+  static const int NO_CONTENT = 201;
+  static const int BAD_REQUEST = 400;
+  static const int UNAUTORISED = 401;
+  static const int FORBIDDEN = 403;
+  static const int NOT_FOUND = 404;
+  static const int INTERNAL_SERVER_ERROR = 500;
 
-  // local status code
+  // Local codes
   static const int CONNECT_TIMEOUT = -1;
   static const int CANCEL = -2;
   static const int RECIEVE_TIMEOUT = -3;
@@ -125,31 +121,6 @@ class ResponseCode {
   static const int CACHE_ERROR = -5;
   static const int NO_INTERNET_CONNECTION = -6;
   static const int DEFAULT = -7;
-}
-
-class ResponseMessage {
-  static const String SUCCESS = AppStrings.success; // success with data
-  static const String NO_CONTENT =
-      AppStrings.success; // success with no data (no content)
-  static const String BAD_REQUEST =
-      AppStrings.strBadRequestError; // failure, API rejected request
-  static const String UNAUTORISED =
-      AppStrings.strUnauthorizedError; // failure, user is not authorised
-  static const String FORBIDDEN =
-      AppStrings.strForbiddenError; //  failure, API rejected request
-  static const String INTERNAL_SERVER_ERROR =
-      AppStrings.strInternalServerError; // failure, crash in server side
-  static const String NOT_FOUND =
-      AppStrings.strNotFoundError; // failure, crash in server side
-
-  // local status code
-  static const String CONNECT_TIMEOUT = AppStrings.strTimeoutError;
-  static const String CANCEL = AppStrings.strDefaultError;
-  static const String RECIEVE_TIMEOUT = AppStrings.strTimeoutError;
-  static const String SEND_TIMEOUT = AppStrings.strTimeoutError;
-  static const String CACHE_ERROR = AppStrings.strCacheError;
-  static const String NO_INTERNET_CONNECTION = AppStrings.strNoInternetError;
-  static const String DEFAULT = AppStrings.strDefaultError;
 }
 
 class ApiInternalStatus {

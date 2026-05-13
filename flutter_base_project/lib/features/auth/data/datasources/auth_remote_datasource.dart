@@ -1,14 +1,16 @@
 import '../models/user_model.dart';
 
-/// Abstract interface cho remote auth data source
-/// Interface Segregation Principle: chỉ expose methods cần thiết
+/// Abstract interface — Interface Segregation: chỉ expose remote auth operations
 abstract class AuthRemoteDataSource {
+  /// Đăng nhập qua API
   Future<UserModel> login({required String email, required String password});
 }
 
-/// Mock implementation — trong thực tế sẽ gọi ApiService
-/// Demo: email: test@example.com, password: password123
+/// Mock implementation — thay bằng ApiService call thực tế
+///
+/// Demo credentials: test@example.com / password123
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  // Inject ApiService khi dùng thực tế:
   // final ApiService _apiService;
   // AuthRemoteDataSourceImpl(this._apiService);
 
@@ -17,10 +19,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    // Simulate network delay
+    // Simulate network latency
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    // Mock credentials validation
     if (email == 'test@example.com' && password == 'password123') {
       return UserModel(
         id: 'usr_001',
@@ -28,9 +29,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         name: 'Nguyễn Văn A',
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         avatarUrl: null,
+        role: 'user',
       );
     }
 
-    throw Exception('Sai email hoặc mật khẩu');
+    // Ném exception — Repository sẽ catch và map thành Failure
+    throw Exception('Sai email hoặc mật khẩu. Vui lòng thử lại.');
   }
 }

@@ -6,8 +6,8 @@ import '../../../../../core/usecases/usecase.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
-/// UseCase xử lý đăng nhập
-/// Single Responsibility: chỉ xử lý logic login, không làm gì khác
+/// LoginUseCase — Single Responsibility: chỉ xử lý business logic đăng nhập
+/// Dependency Inversion: phụ thuộc vào AuthRepository (abstract)
 class LoginUseCase extends UseCase<UserEntity, LoginParams> {
   final AuthRepository _repository;
 

@@ -2,117 +2,127 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// ─── SharedPreferences keys ───────────────────────────────────────────────
 const String keyLanguageCode = '_languageCode';
 const String keyFirstUserApp = '_firstUseApp';
-// const String keyAccessToken = "_accessToken";
-// const String keyRefreshToken = "_refreshToken";
-// const String keyUserId = '_userId';
-// const String keyUserRole = '_userId';
-// const String keyPermissions = '_permission';
-// const String keyVerificationId = '_verificationId';
-// const String keyResendToken = '_resendToken';
-// const String keyUID = '_uid';
-// const String keyRefCode = '_refCode';
-// const String keyPassword = '_password';
-
+const String keyAccessToken = '_access_token';
+const String keyRefreshToken = '_refresh_token';
+const String keyUserId = '_userId';
 const String keyFCMToken = '_fcmToken';
-const String keyPhoneNumber = '_phoneNumber';
-const String keyKeyWord = '_keyWord';
-const String keyBound = '_keyBound';
 
+/// Abstract interface cho LocalStorage
+/// Dependency Inversion: tầng trên phụ thuộc vào interface này
 abstract class LocalStorage {
+  // ─── Auth ─────────────────────────────────────────────────────────────
+  Future<void> saveAccessToken(String token);
+  Future<void> saveRefreshToken(String token);
+  Future<void> saveUserId(String userId);
+  String get accessToken;
+  String get refreshToken;
+  String get userId;
+  bool get isLoggedIn;
+
+  // ─── App ──────────────────────────────────────────────────────────────
   Future<void> cacheLanguageCode(String language);
+  String get languageCode;
+
+  // ─── FCM ──────────────────────────────────────────────────────────────
   Future<void> setFCMToken(String fcmToken);
-
-  Future<void> setPhoneNumber(String phoneNumber);
-
-  Future<void> setKeyWord(String keyWord);
-
-  Future<void> setIsBound(bool isBound);
-
-  bool get isBound;
-
   String get fcmToken;
 
-  String get phoneNumber;
-
-  String get keyword;
-
-  Future<void> clear();
+  // ─── Lifecycle ────────────────────────────────────────────────────────
+  Future<void> clearAuthData();
+  Future<void> clearAll();
 }
 
-@Injectable(
-  as: LocalStorage,
-)
+@Injectable(as: LocalStorage)
 class LocalStorageImpl extends LocalStorage {
-  late final FlutterSecureStorage _flutterSecureStorage;
-  late final SharedPreferences sharedPreferences;
+  late SharedPreferences _sharedPreferences;
+  late FlutterSecureStorage _secureStorage;
 
   LocalStorageImpl();
 
   @PostConstruct(preResolve: true)
-  Future<void> onInitService() async {
-    // _flutterSecureStorage = FlutterSecureStorage(
-    //     aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    //     iOptions:
-    //         const IOSOptions(accessibility: KeychainAccessibility.first_unlock));
+  Future<void> init() async {
+    _sharedPreferences = await SharedPreferences.getInstance();
+    _secureStorage = const FlutterSecureStorage();
 
-    sharedPreferences = await SharedPreferences.getInstance();
-    final isFirstUes = sharedPreferences.getBool(keyFirstUserApp) ?? false;
-    if (!isFirstUes) {
-      sharedPreferences.setBool(keyFirstUserApp, true);
-      await _flutterSecureStorage.deleteAll();
+    // Xoá secure storage khi app cài lần đầu (tránh stale token sau reinstall)
+    final isFirstUse = _sharedPreferences.getBool(keyFirstUserApp) ?? false;
+    if (!isFirstUse) {
+      await _secureStorage.deleteAll();
+      await _sharedPreferences.setBool(keyFirstUserApp, true);
     }
   }
 
+  // ─── Auth ───────────────────────────────────────────────────────────────
+
   @override
-  Future<void> clear() {
-    sharedPreferences.clear();
-    sharedPreferences.setBool(keyFirstUserApp, true);
-    return _flutterSecureStorage.deleteAll();
+  Future<void> saveAccessToken(String token) async {
+    await _secureStorage.write(key: keyAccessToken, value: token);
+    // Cũng lưu vào SharedPreferences cho DioFactory đọc đồng bộ
+    await _sharedPreferences.setString(keyAccessToken, token);
   }
 
   @override
-  Future<void> setFCMToken(String fcmToken) async {
-    // TODO: implement setFCMToken
-    await sharedPreferences.setString(keyFCMToken, fcmToken);
+  Future<void> saveRefreshToken(String token) async {
+    await _secureStorage.write(key: keyRefreshToken, value: token);
   }
 
   @override
-  Future<void> setIsBound(bool isBound) async {
-    // TODO: implement setIsBound
-    await sharedPreferences.setBool(keyBound, isBound);
+  Future<void> saveUserId(String userId) async {
+    await _sharedPreferences.setString(keyUserId, userId);
   }
 
   @override
-  Future<void> setKeyWord(String keyWord) async {
-    // TODO: implement setKeyWord
-    await sharedPreferences.setString(keyKeyWord, keyWord);
-  }
+  String get accessToken => _sharedPreferences.getString(keyAccessToken) ?? '';
 
   @override
-  Future<void> setPhoneNumber(String phoneNumber) async {
-    // TODO: implement setPhoneNumber
-    await sharedPreferences.setString(keyPhoneNumber, phoneNumber);
-  }
+  String get refreshToken =>
+      _sharedPreferences.getString(keyRefreshToken) ?? '';
+
+  @override
+  String get userId => _sharedPreferences.getString(keyUserId) ?? '';
+
+  @override
+  bool get isLoggedIn => accessToken.isNotEmpty;
+
+  // ─── App ────────────────────────────────────────────────────────────────
 
   @override
   Future<void> cacheLanguageCode(String language) async {
-    await sharedPreferences.setString(keyLanguageCode, language);
+    await _sharedPreferences.setString(keyLanguageCode, language);
   }
 
   @override
-  // TODO: implement fcmToken
-  String get fcmToken => sharedPreferences.getString(keyFCMToken) ?? '';
+  String get languageCode =>
+      _sharedPreferences.getString(keyLanguageCode) ?? 'vi';
+
+  // ─── FCM ────────────────────────────────────────────────────────────────
 
   @override
-  // TODO: implement isBound
-  bool get isBound => sharedPreferences.getBool(keyBound) ?? false;
-  @override
-  // TODO: implement keyword
-  String get keyword => sharedPreferences.getString(keyKeyWord) ?? '';
+  Future<void> setFCMToken(String fcmToken) async {
+    await _sharedPreferences.setString(keyFCMToken, fcmToken);
+  }
 
   @override
-  // TODO: implement phoneNumber
-  String get phoneNumber => sharedPreferences.getString(keyPhoneNumber) ?? '';
+  String get fcmToken => _sharedPreferences.getString(keyFCMToken) ?? '';
+
+  // ─── Lifecycle ──────────────────────────────────────────────────────────
+
+  @override
+  Future<void> clearAuthData() async {
+    await _sharedPreferences.remove(keyAccessToken);
+    await _sharedPreferences.remove(keyRefreshToken);
+    await _sharedPreferences.remove(keyUserId);
+    await _secureStorage.delete(key: keyAccessToken);
+    await _secureStorage.delete(key: keyRefreshToken);
+  }
+
+  @override
+  Future<void> clearAll() async {
+    await _sharedPreferences.clear();
+    await _sharedPreferences.setBool(keyFirstUserApp, true);
+    await _secureStorage.deleteAll();
+  }
 }

@@ -1,6 +1,6 @@
-import 'IView.dart';
-
-abstract class IPresenter<V extends IView> {
-    void attachView(V view);
-    void detachView();
+/// Interface cho Presenter trong MVP pattern
+/// Single Responsibility: Presenter chỉ xử lý presentation logic
+abstract class IPresenter {
+  void attachView(dynamic view);
+  void detachView();
 }

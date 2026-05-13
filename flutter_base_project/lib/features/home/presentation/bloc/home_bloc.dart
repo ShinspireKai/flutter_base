@@ -6,9 +6,16 @@ import '../../domain/usecases/get_user_profile_usecase.dart';
 import 'home_event.dart';
 import 'home_state.dart';
 
-/// HomeBloc — quản lý state cho trang Home
-/// Single Responsibility: chỉ xử lý home state
-/// Dependency Inversion: phụ thuộc vào UseCases (abstractions)
+/// HomeBloc — quản lý state trang Home
+///
+/// SOLID:
+/// - S: Chỉ xử lý home state (load profile, refresh, logout)
+/// - D: Phụ thuộc vào UseCases (abstractions)
+///
+/// Events → States:
+///   HomeLoadUserProfile → HomeLoading → HomeLoaded | HomeError
+///   HomeRefreshed       → HomeLoaded(isRefreshing: true) → HomeLoaded
+///   HomeLogout          → HomeLoggingOut → HomeLoggedOut | HomeError
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetUserProfileUseCase _getUserProfileUseCase;
   final LogoutUseCase _logoutUseCase;
@@ -20,6 +27,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _logoutUseCase = logoutUseCase,
         super(const HomeInitial()) {
     on<HomeLoadUserProfile>(_onLoadUserProfile);
+    on<HomeRefreshed>(_onRefreshed);
     on<HomeLogout>(_onLogout);
   }
 
@@ -28,9 +36,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     emit(const HomeLoading());
-
     final result = await _getUserProfileUseCase(NoParams());
+    result.fold(
+      (failure) => emit(HomeError(message: failure.message)),
+      (profile) => emit(HomeLoaded(profile: profile)),
+    );
+  }
 
+  Future<void> _onRefreshed(
+    HomeRefreshed event,
+    Emitter<HomeState> emit,
+  ) async {
+    // Nếu đang loaded thì chỉ show refreshing indicator, không xoá data cũ
+    if (state is HomeLoaded) {
+      emit((state as HomeLoaded).copyWith(isRefreshing: true));
+    }
+    final result = await _getUserProfileUseCase(NoParams());
     result.fold(
       (failure) => emit(HomeError(message: failure.message)),
       (profile) => emit(HomeLoaded(profile: profile)),
@@ -42,9 +63,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     emit(const HomeLoggingOut());
-
     final result = await _logoutUseCase(NoParams());
-
     result.fold(
       (failure) => emit(HomeError(message: failure.message)),
       (_) => emit(const HomeLoggedOut()),

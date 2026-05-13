@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/user_entity.dart';
 
-/// States cho LoginBloc
+/// Login States
 abstract class LoginState extends Equatable {
   const LoginState();
 
@@ -10,16 +10,23 @@ abstract class LoginState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Trạng thái ban đầu
+/// Trạng thái ban đầu — giữ UI state (isPasswordVisible)
 class LoginInitial extends LoginState {
   final bool isPasswordVisible;
+
   const LoginInitial({this.isPasswordVisible = false});
+
+  LoginInitial copyWith({bool? isPasswordVisible}) {
+    return LoginInitial(
+      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+    );
+  }
 
   @override
   List<Object?> get props => [isPasswordVisible];
 }
 
-/// Đang xử lý login
+/// Đang gọi API
 class LoginLoading extends LoginState {
   const LoginLoading();
 }
@@ -27,6 +34,7 @@ class LoginLoading extends LoginState {
 /// Login thành công
 class LoginSuccess extends LoginState {
   final UserEntity user;
+
   const LoginSuccess({required this.user});
 
   @override
@@ -36,6 +44,7 @@ class LoginSuccess extends LoginState {
 /// Login thất bại
 class LoginFailure extends LoginState {
   final String errorMessage;
+
   const LoginFailure({required this.errorMessage});
 
   @override

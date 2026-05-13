@@ -4,7 +4,7 @@ import '../../../../../core/error/failures.dart';
 import '../../../../../core/usecases/usecase.dart';
 import '../repositories/auth_repository.dart';
 
-/// UseCase xử lý đăng xuất
+/// LogoutUseCase — xử lý đăng xuất
 class LogoutUseCase extends UseCase<bool, NoParams> {
   final AuthRepository _repository;
 

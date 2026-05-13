@@ -4,7 +4,7 @@ import '../../../../../core/error/failures.dart';
 import '../../../../../core/usecases/usecase.dart';
 import '../repositories/auth_repository.dart';
 
-/// UseCase kiểm tra trạng thái đăng nhập
+/// CheckLoginStatusUseCase — kiểm tra trạng thái đăng nhập
 class CheckLoginStatusUseCase extends UseCase<bool, NoParams> {
   final AuthRepository _repository;
 

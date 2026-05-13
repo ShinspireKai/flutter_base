@@ -1,79 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:massageronsitetestingapp/config/MyConfig.dart';
-import 'package:massageronsitetestingapp/module/dialog/MessageDialog.dart';
+
 import 'IPresenter.dart';
 import 'IView.dart';
 
-abstract class BaseView extends StatefulWidget {}
+/// BaseView — StatefulWidget gốc cho MVP pattern
+abstract class BaseView extends StatefulWidget {
+  const BaseView({super.key});
+}
 
+/// BaseViewState — State gốc implement IView
+///
+/// Cách dùng:
+/// ```dart
+/// class LoginPage extends BaseView {
+///   const LoginPage({super.key});
+///   @override
+///   State<LoginPage> createState() => _LoginPageState();
+/// }
+///
+/// class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
+///     implements ILoginView {
+///   @override
+///   LoginPresenter createPresenter() => LoginPresenter();
+///
+///   @override
+///   Widget buildView(BuildContext context) => Scaffold(...);
+/// }
+/// ```
 abstract class BaseViewState<P extends IPresenter, V extends BaseView>
     extends State<V> implements IView {
-  P? presenter;
+  P? _presenter;
   int _loadingCount = 0;
+
+  P? get presenter => _presenter;
 
   @override
   void initState() {
     super.initState();
-    presenter = createPresenter();
-    presenter?.attachView(this);
+    _presenter = createPresenter();
+    _presenter?.attachView(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       afterInit();
     });
   }
 
+  /// Hook gọi sau khi frame đầu tiên render xong
+  /// Dùng để load data lần đầu
   void afterInit() {}
 
-  P? createPresenter();
-
-  P? getPresenter() {
-    return presenter;
-  }
+  /// Subclass phải override để tạo Presenter tương ứng
+  P createPresenter();
 
   @override
   void dispose() {
-    super.dispose();
     _loadingCount = 0;
-    hideLoading();
-    presenter?.detachView();
-    presenter = null;
+    EasyLoading.dismiss();
+    _presenter?.detachView();
+    _presenter = null;
+    super.dispose();
   }
 
   @override
-  Future<dynamic> routePush(Widget page,
-      {String? routeName, Function()? action}) {
-    final instance = Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => page, settings: RouteSettings(name: routeName)));
-    if (action != null) {
-      instance.whenComplete(action);
-    }
-    return instance;
-  }
+  Widget build(BuildContext context) => buildView(context);
 
-  @override
-  void routePushAndRemoveUntil(Widget page, {String? routeName}) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-          builder: (_) => page, settings: RouteSettings(name: routeName)),
-      (route) => route == null,
-    );
-  }
+  /// Override method này thay vì build() để tránh nhầm lẫn
+  Widget buildView(BuildContext context);
 
-  @override
-  void showToast(String msg, {ToastGravity gravity = ToastGravity.BOTTOM}) {
-    Fluttertoast.cancel();
-    Fluttertoast.showToast(
-        msg: msg,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: gravity,
-        timeInSecForIosWeb: 1,
-        fontSize: 16.0);
-  }
+  // ─── IView Implementation ───────────────────────────────────────────────
 
   @override
   void showLoading() {
@@ -88,54 +84,70 @@ abstract class BaseViewState<P extends IPresenter, V extends BaseView>
   }
 
   @override
-  Future<dynamic> showMsg(String? msg,
-      {int code = 1, void Function()? onFinish}) {
-    String title = code < 0 ? "警告" : "提示";
-    switch (code) {
-      case -3:
-        // if (!MyConfig.isDebug) {
-        //   msg = "服务器存取发生问题";
-        // }
-        break;
-      case 3:
-        msg = null;
-        break;
-    }
-
-    if (msg != null) {
-      return showDialog(
-          context: context,
-          builder: (context) => MessageDialog(
-                barrierDismissible: false,
-                title: title,
-                msg: msg!,
-                buttons: [
-                  MyDialogButton(
-                      text: "确认",
-                      onTap: () {
-                        Navigator.of(context).pop();
-                      })
-                ],
-              )).whenComplete(() {
-        if (onFinish != null) {
-          onFinish();
-        }
-      });
-    } else {
-      return Future.value(null);
-    }
+  void showToast(String msg) {
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      fontSize: 16.0,
+    );
   }
 
-  Future showCustomDialog(
-      String title, String msg, Map<String, Function()> actions) {
-    var buttons = <MyDialogButton>[];
+  @override
+  Future<dynamic> showMsg(String? msg, {int code = 1, void Function()? onFinish}) {
+    if (msg == null) return Future.value(null);
 
-    actions.entries.forEach((element) {
-      buttons.add(MyDialogButton(text: element.key, onTap: element.value));
-    });
     return showDialog(
-        context: context,
-        builder: (context) =>
-            MessageDialog(title: title, msg: msg, buttons: buttons));
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          code < 0 ? 'Lỗi' : 'Thông báo',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(msg),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onFinish?.call();
+            },
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<dynamic> routePush(
+    Widget page, {
+    String? routeName,
+    Function()? action,
+  }) {
+    final result = Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => page,
+        settings: RouteSettings(name: routeName),
+      ),
+    );
+    if (action != null) result.whenComplete(action);
+    return result;
+  }
+
+  @override
+  void routePushAndRemoveUntil(Widget page, {String? routeName}) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => page,
+        settings: RouteSettings(name: routeName),
+      ),
+      (route) => false,
+    );
   }
 }

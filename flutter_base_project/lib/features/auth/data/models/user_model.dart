@@ -1,7 +1,7 @@
 import '../../domain/entities/user_entity.dart';
 
-/// UserModel extends UserEntity để hỗ trợ serialization
-/// Liskov Substitution Principle: có thể dùng ở bất kỳ đâu cần UserEntity
+/// Data model — extends entity, thêm serialization
+/// Open/Closed: thêm fields mới không cần sửa UserEntity
 class UserModel extends UserEntity {
   const UserModel({
     required super.id,
@@ -9,15 +9,17 @@ class UserModel extends UserEntity {
     required super.name,
     required super.token,
     super.avatarUrl,
+    super.role,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id']?.toString() ?? '',
-      email: json['email'] ?? '',
-      name: json['name'] ?? '',
-      token: json['token'] ?? '',
-      avatarUrl: json['avatar_url'],
+      email: json['email']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      token: json['token']?.toString() ?? '',
+      avatarUrl: json['avatar_url']?.toString(),
+      role: json['role']?.toString(),
     );
   }
 
@@ -28,10 +30,11 @@ class UserModel extends UserEntity {
       'name': name,
       'token': token,
       'avatar_url': avatarUrl,
+      'role': role,
     };
   }
 
-  /// Tạo UserModel từ UserEntity (conversion helper)
+  /// Convert từ Entity sang Model (khi cần serialize)
   factory UserModel.fromEntity(UserEntity entity) {
     return UserModel(
       id: entity.id,
@@ -39,6 +42,7 @@ class UserModel extends UserEntity {
       name: entity.name,
       token: entity.token,
       avatarUrl: entity.avatarUrl,
+      role: entity.role,
     );
   }
 }

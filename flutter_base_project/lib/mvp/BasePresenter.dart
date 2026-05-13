@@ -1,68 +1,70 @@
-import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'BaseView.dart';
+
+import 'BaseModel.dart';
 import 'IModel.dart';
 import 'IPresenter.dart';
 import 'IView.dart';
 
-abstract class BasePresenter<V extends IView, M extends IModel>
+/// BasePresenter — Presenter gốc cho toàn bộ MVP
+///
+/// SOLID principles:
+/// - S: Chỉ quản lý vòng đời View-Model và presentation logic
+/// - O: Kế thừa để mở rộng behavior
+/// - D: Phụ thuộc vào IView và IModel (abstractions)
+///
+/// Cách dùng:
+/// ```dart
+/// class LoginPresenter extends BasePresenter<ILoginView, LoginModel> {
+///   @override
+///   IModel createModel() => LoginModel();
+///
+///   void doLogin(String email, String password) async {
+///     final result = await mvpModel.http.execute(() => mvpModel.login(email, password));
+///     if (result != null) mvpView.navigateToHome();
+///   }
+/// }
+/// ```
+abstract class BasePresenter<V extends IView, M extends BaseModel>
     implements IPresenter {
   M? _model;
   V? _view;
+
   M get mvpModel => _model!;
   V get mvpView => _view!;
+
   late BuildContext context;
 
   @override
-  void attachView(IView view) {
+  void attachView(dynamic view) {
     _view = view as V;
+    context = (view as dynamic).context as BuildContext;
+
     _model = createModel() as M;
-    context = (view as BaseViewState).context;
-
-    _model?.http = HttpBase((isLoading) {
-      if (isLoading)
-        mvpView.showLoading();
-      else
-        mvpView.hideLoading();
-    }, (e) {
-      String msg = e.toString();
-      if (e is DioException) {
-        msg = "[${e.requestOptions.uri.toString()}]${e.message}";
-        if (e.response != null) {
-          try {
-            Map json = jsonDecode(e.response?.data);
-            msg += "\n" + json["msg"];
-          } catch (e) {}
-
-          if (e.response?.statusCode == 401) {
-            mvpView.showMsg(msg, code: -1).whenComplete(() {
-              SharedPreferences.getInstance().then((prefs) {
-                prefs.remove(MyConfig.PREF_TOKEN);
-                mvpView.routePushAndRemoveUntil(LoginPage());
-              });
-            });
-            return;
-          }
+    _model!.http = HttpBase(
+      onLoading: (isLoading) {
+        if (isLoading) {
+          mvpView.showLoading();
+        } else {
+          mvpView.hideLoading();
         }
-      }
-      mvpView.showMsg(msg, code: -3);
-    });
+      },
+      onError: (error) {
+        mvpView.showMsg(error.toString(), code: -3);
+      },
+    );
   }
 
   @override
   void detachView() {
-    _view = null;
     _model?.dispose();
     _model = null;
+    _view = null;
   }
 
-  V get view {
-    return _view!;
-  }
-
+  V get view => _view!;
   M get model => _model!;
+  bool get isViewAttached => _view != null;
 
+  /// Subclass phải override để tạo Model tương ứng
   IModel createModel();
 }

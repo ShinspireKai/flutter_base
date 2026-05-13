@@ -13,10 +13,12 @@ import 'package:flutter_base_project/features/home/presentation/bloc/home_bloc.d
 import 'package:flutter_base_project/features/home/presentation/bloc/home_event.dart';
 import 'package:flutter_base_project/view/res/theme_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'core/l10n/app_localizations.dart';
 
-GlobalKey<NavigatorState>? navigatorKey = GlobalKey<NavigatorState>();
+/// Global navigator key — dùng cho toast/dialog không có context
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-/// Root app — wires up Router và MultiBlocProvider
+/// Root App Widget
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -40,14 +42,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        // LoginBloc — cung cấp toàn app để LoginPage dùng
         BlocProvider<LoginBloc>(
           create: (_) => LoginBloc(loginUseCase: sl<LoginUseCase>()),
         ),
+        // HomeBloc — cung cấp toàn app, tự load profile khi login xong
         BlocProvider<HomeBloc>(
           create: (_) => HomeBloc(
             getUserProfileUseCase: sl<GetUserProfileUseCase>(),
             logoutUseCase: sl<LogoutUseCase>(),
-          ),
+          )..add(const HomeLoadUserProfile()),
         ),
       ],
       child: MaterialApp.router(
@@ -57,12 +61,17 @@ class _MyAppState extends State<MyApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: _appRouter.config(),
+        // EasyLoading overlay builder
+        builder: EasyLoading.init(),
       ),
     );
   }
 }
 
-/// MainAppPage — Splash screen kiểm tra trạng thái login rồi điều hướng
+/// MainAppPage — Splash screen kiểm tra login status rồi điều hướng
+///
+/// Đây là entry point của router (initial: true)
+/// MVP note: đây là View đơn giản, không cần Presenter vì logic rất ít
 @RoutePage()
 class MainAppPage extends StatefulWidget {
   const MainAppPage({super.key});
@@ -79,9 +88,7 @@ class _MainAppPageState extends State<MainAppPage> {
   }
 
   Future<void> _checkLoginStatus() async {
-    // Delay nhỏ để splash hiển thị
     await Future.delayed(const Duration(milliseconds: 800));
-
     if (!mounted) return;
 
     final checkLoginUseCase = sl<CheckLoginStatusUseCase>();
@@ -93,8 +100,8 @@ class _MainAppPageState extends State<MainAppPage> {
       (_) => context.router.replaceNamed('/login'),
       (isLoggedIn) {
         if (isLoggedIn) {
-          context.router.replaceNamed('/home');
           context.read<HomeBloc>().add(const HomeLoadUserProfile());
+          context.router.replaceNamed('/home');
         } else {
           context.router.replaceNamed('/login');
         }
@@ -109,23 +116,24 @@ class _MainAppPageState extends State<MainAppPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Logo
             Container(
-              width: 80,
-              height: 80,
+              width: 84,
+              height: 84,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor.withOpacity(0.7),
+                    Theme.of(context).primaryColor.withOpacity(0.65),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                    blurRadius: 20,
+                    color: Theme.of(context).primaryColor.withOpacity(0.35),
+                    blurRadius: 22,
                     offset: const Offset(0, 8),
                   ),
                 ],
@@ -133,10 +141,10 @@ class _MainAppPageState extends State<MainAppPage> {
               child: const Icon(
                 Icons.flutter_dash,
                 color: Colors.white,
-                size: 44,
+                size: 46,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             Text(
               'Flutter Base',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -144,14 +152,15 @@ class _MainAppPageState extends State<MainAppPage> {
                     color: Theme.of(context).primaryColorLight,
                   ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              'Clean Architecture + BLoC',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              'Clean Architecture · BLoC · MVP',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).primaryColorDark,
+                    letterSpacing: 0.5,
                   ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 44),
             const CircularProgressIndicator(),
           ],
         ),

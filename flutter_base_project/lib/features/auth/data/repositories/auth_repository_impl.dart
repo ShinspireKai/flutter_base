@@ -5,20 +5,21 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
-import '../models/user_model.dart';
 
-/// Concrete implementation của AuthRepository
-/// Orchestrate remote + local data sources
-/// Dependency Inversion: phụ thuộc vào abstractions (AuthRemoteDataSource, AuthLocalDataSource)
+/// AuthRepositoryImpl — Concrete implementation
+///
+/// SOLID:
+/// - S: Chỉ orchestrate remote + local data cho auth
+/// - D: Phụ thuộc vào abstractions (AuthRemoteDataSource, AuthLocalDataSource)
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource _remoteDataSource;
-  final AuthLocalDataSource _localDataSource;
+  final AuthRemoteDataSource _remote;
+  final AuthLocalDataSource _local;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
-  })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource;
+  })  : _remote = remoteDataSource,
+        _local = localDataSource;
 
   @override
   Future<Either<Failure, UserEntity>> login({
@@ -26,22 +27,20 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final userModel = await _remoteDataSource.login(
-        email: email,
-        password: password,
-      );
-      // Cache user data locally
-      await _localDataSource.cacheUser(userModel);
-      return Right(userModel);
+      final user = await _remote.login(email: email, password: password);
+      await _local.cacheUser(user); // Cache sau khi login thành công
+      return Right(user);
     } on Exception catch (e) {
-      return Left(AuthFailure(message: e.toString().replaceAll('Exception: ', '')));
+      return Left(
+        AuthFailure(message: e.toString().replaceAll('Exception: ', '')),
+      );
     }
   }
 
   @override
   Future<Either<Failure, bool>> logout() async {
     try {
-      await _localDataSource.clearAuthData();
+      await _local.clearAuthData();
       return const Right(true);
     } on Exception catch (e) {
       return Left(CacheFailure(message: e.toString()));
@@ -51,8 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, bool>> isLoggedIn() async {
     try {
-      final result = await _localDataSource.isLoggedIn();
-      return Right(result);
+      return Right(await _local.isLoggedIn());
     } on Exception catch (e) {
       return Left(CacheFailure(message: e.toString()));
     }
@@ -61,8 +59,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity?>> getCachedUser() async {
     try {
-      final userModel = await _localDataSource.getCachedUser();
-      return Right(userModel);
+      return Right(await _local.getCachedUser());
     } on Exception catch (e) {
       return Left(CacheFailure(message: e.toString()));
     }

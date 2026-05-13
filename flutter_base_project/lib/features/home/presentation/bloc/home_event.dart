@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// Home Events
 abstract class HomeEvent extends Equatable {
   const HomeEvent();
 
@@ -7,12 +8,17 @@ abstract class HomeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event load user profile khi vào trang Home
+/// Load user profile khi vào trang Home
 class HomeLoadUserProfile extends HomeEvent {
   const HomeLoadUserProfile();
 }
 
-/// Event logout
+/// User nhấn refresh
+class HomeRefreshed extends HomeEvent {
+  const HomeRefreshed();
+}
+
+/// User nhấn logout
 class HomeLogout extends HomeEvent {
   const HomeLogout();
 }

@@ -17,8 +17,6 @@ clean:
 	@flutter clean
 	@flutter pub get
 	@flutter pub run build_runner build --delete-conflicting-outputs
-	@flutter pub run easy_localization:generate --source-dir 'assets/translations/' --output-dir 'lib/app'
-	@flutter pub run easy_localization:generate --source-dir 'assets/translations/' --output-dir 'lib/app' --output-file 'locale_keys.g.dart' --format keys
 
 build_runner:
 	@flutter pub run build_runner build --delete-conflicting-outputs

@@ -2,12 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/login_bloc.dart';
-import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
+import '../mvp/login_presenter.dart';
 
-/// LoginForm widget — Single Responsibility: chỉ xử lý UI form input
+/// LoginForm — Widget render form đăng nhập
+///
+/// Single Responsibility: chỉ render form và forward action lên Presenter.
+/// Không chứa bất kỳ logic navigation hay side-effect nào.
+///
+/// Flow:
+///   User nhập → User nhấn submit → Presenter.submitLogin() → BLoC dispatch
 class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+  /// Presenter được inject từ LoginPage (BaseViewState)
+  final LoginPresenter presenter;
+
+  const LoginForm({super.key, required this.presenter});
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -15,24 +24,24 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
-  void _onSubmit() {
+  void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<LoginBloc>().add(
-            LoginSubmitted(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
+      // Forward lên Presenter — đúng luồng MVP
+      widget.presenter.submitLogin(
+        bloc: context.read<LoginBloc>(),
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
     }
   }
 
@@ -49,133 +58,100 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Email field
-              _buildEmailField(isLoading),
+              // ── Email ──────────────────────────────────────────────────
+              TextFormField(
+                controller: _emailCtrl,
+                enabled: !isLoading,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'example@email.com',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Vui lòng nhập email';
+                  }
+                  if (!RegExp(r'^[\w.-]+@[\w.-]+\.\w+$').hasMatch(v.trim())) {
+                    return 'Email không hợp lệ';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 16),
 
-              // Password field
-              _buildPasswordField(isLoading, isPasswordVisible),
-              const SizedBox(height: 32),
+              // ── Password ───────────────────────────────────────────────
+              TextFormField(
+                controller: _passwordCtrl,
+                enabled: !isLoading,
+                obscureText: !isPasswordVisible,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                decoration: InputDecoration(
+                  labelText: 'Mật khẩu',
+                  hintText: '••••••••',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                    // Forward lên Presenter — không gọi BLoC trực tiếp từ widget
+                    onPressed: () => widget.presenter
+                        .togglePasswordVisibility(context.read<LoginBloc>()),
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return 'Vui lòng nhập mật khẩu';
+                  }
+                  if (v.length < 6) {
+                    return 'Mật khẩu phải có ít nhất 6 ký tự';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 28),
 
-              // Login button
-              _buildLoginButton(context, isLoading),
+              // ── Submit button ──────────────────────────────────────────
+              SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Đăng nhập',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildEmailField(bool isLoading) {
-    return TextFormField(
-      controller: _emailController,
-      enabled: !isLoading,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      decoration: const InputDecoration(
-        labelText: 'Email',
-        hintText: 'example@email.com',
-        prefixIcon: Icon(Icons.email_outlined),
-      ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Vui lòng nhập email';
-        }
-        if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-          return 'Email không hợp lệ';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPasswordField(bool isLoading, bool isPasswordVisible) {
-    return TextFormField(
-      controller: _passwordController,
-      enabled: !isLoading,
-      obscureText: !isPasswordVisible,
-      textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) => _onSubmit(),
-      decoration: InputDecoration(
-        labelText: 'Mật khẩu',
-        hintText: '••••••••',
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(
-            isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-          ),
-          onPressed: () => context
-              .read<LoginBloc>()
-              .add(const LoginPasswordVisibilityToggled()),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Vui lòng nhập mật khẩu';
-        }
-        if (value.length < 6) {
-          return 'Mật khẩu phải có ít nhất 6 ký tự';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildLoginButton(BuildContext context, bool isLoading) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: isLoading
-            ? null
-            : LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-        color: isLoading ? Colors.grey[300] : null,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: isLoading
-            ? []
-            : [
-                BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.35),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-      ),
-      child: ElevatedButton(
-        onPressed: isLoading ? null : _onSubmit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-            : const Text(
-                'Đăng nhập',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-      ),
     );
   }
 }
