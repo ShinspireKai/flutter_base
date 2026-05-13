@@ -83,7 +83,7 @@ The project includes a complete MVP base layer for screens that require a tradit
 lib/mvp/
 ├── IView.dart           ← View interface (showLoading, showToast, routePush...)
 ├── IPresenter.dart      ← Presenter interface (attachView, detachView)
-├── IModel.dart          ← Model interface + HttpBase helper
+├── IModel.dart          ← Model interface
 ├── BaseModel.dart       ← Abstract Model base
 ├── BasePresenter.dart   ← Generic Presenter<V extends IView, M extends BaseModel>
 └── BaseView.dart        ← StatefulWidget + IView implementation
@@ -505,49 +505,108 @@ BlocProvider(
 
 ## Networking
 
-`DioFactory` builds the Dio client with:
+### DioBase — Dio client tích hợp sẵn
 
-- ✅ `baseUrl` from `Constants.BASE_URL`
-- ✅ 30s connect/receive/send timeout
-- ✅ Auto Bearer token injection from `SharedPreferences`
-- ✅ 401 → auto clear token
-- ✅ `PrettyDioLogger` (debug only)
+`DioBase` là class trung tâm thay thế `HttpBase`, được inject vào mọi `BaseModel` thông qua `BasePresenter`.
 
-### Making an API call
+**Tích hợp sẵn:**
 
-Use `ApiService` injected via DI:
+| Interceptor | Chức năng |
+|---|---|
+| `AuthInterceptor` | Tự động đính `Bearer token` vào mỗi request; xoá token nếu nhận 401 |
+| `RetryInterceptor` | Tự động retry tối đa 3 lần khi gặp lỗi network/timeout (exponential backoff) |
+| `ErrorMappingInterceptor` | Map `DioException` / 4xx response → `Failure`, gọi `onError` callback |
+| `PrettyDioLogger` | Log request/response đẹp (chỉ bật ở debug mode) |
+
+**Cấu hình:**
+- `baseUrl` từ `Constants.BASE_URL`
+- Timeout: 30s cho connect / receive / send
+- Default headers: `content-type`, `accept`, `language`
+
+### Hai cách sử dụng DioBase
+
+#### Cách 1 — Trong MVP Model (qua `BaseModel.dio`)
+
+`BasePresenter` tự động inject `DioBase` vào mỗi `BaseModel`. Loading overlay và error dialog được xử lý tự động.
 
 ```dart
-// In a DataSource implementation
-class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final ApiService _apiService;
+class AuthModel extends BaseModel {
+  Future<UserModel?> login(String email, String password) async {
+    // dio.post() tự động: show loading → gọi API → hide loading
+    // Nếu lỗi → tự động show error dialog qua onError callback
+    final response = await dio.post(
+      'auth/login',
+      data: {'email': email, 'password': password},
+    );
+    if (response == null) return null;
+    return UserModel.fromJson(response.data['data']);
+  }
+}
 
-  AuthRemoteDataSourceImpl(this._apiService);
+// Trong Presenter gọi Model:
+void doLogin(String email, String password) async {
+  final user = await mvpModel.login(email, password);
+  if (user != null) mvpView.navigateToHome();
+}
+```
+
+#### Cách 2 — Trong DataSource tầng data (inject qua DI)
+
+DataSource nhận `DioBase` qua constructor. Loading/error do BLoC + Repository xử lý.
+
+```dart
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  final DioBase _dio;
+
+  AuthRemoteDataSourceImpl({required DioBase dio}) : _dio = dio;
 
   @override
   Future<UserModel> login({required String email, required String password}) async {
-    final response = await _apiService.post(
-      endPoint: 'auth/login',
+    final response = await _dio.post(
+      'auth/login',
       data: {'email': email, 'password': password},
     );
+    if (response == null) throw Exception('Không thể kết nối đến máy chủ');
     return UserModel.fromJson(response.data['data']);
   }
 }
 ```
 
-### Error handling
-
-Errors are mapped through `ErrorHandler` → `Failure`:
+### Convenience methods
 
 ```dart
-try {
-  final user = await _remote.login(email: email, password: password);
-  return Right(user);
-} on DioException catch (e) {
-  final failure = ErrorHandler.handle(e).failure;
-  return Left(ServerFailure(message: failure.message));
-} on Exception catch (e) {
-  return Left(AuthFailure(message: e.toString()));
+// Tất cả methods đều tự động gắn loading state
+await dio.get('users', queryParameters: {'page': 1});
+await dio.post('auth/login', data: body);
+await dio.put('users/1', data: body);
+await dio.patch('users/1', data: body);
+await dio.delete('users/1');
+
+// Upload file
+await dio.upload(
+  'files/upload',
+  formData: FormData.fromMap({'file': await MultipartFile.fromFile(path)}),
+  onSendProgress: (sent, total) => print('$sent/$total'),
+);
+
+// Gọi raw Dio nếu cần tùy chỉnh (không có loading overlay)
+final response = await dio.dio.get('endpoint', options: Options(...));
+```
+
+### Error handling
+
+Repository bắt exception từ DataSource và map thành `Failure`:
+
+```dart
+@override
+Future<Either<Failure, UserEntity>> login(...) async {
+  try {
+    final user = await _remote.login(email: email, password: password);
+    await _local.cacheUser(user);
+    return Right(user);
+  } on Exception catch (e) {
+    return Left(AuthFailure(message: e.toString().replaceAll('Exception: ', '')));
+  }
 }
 ```
 

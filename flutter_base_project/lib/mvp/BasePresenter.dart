@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../core/network/dio_base.dart';
+import '../core/network/failure.dart';
 import 'BaseModel.dart';
 import 'IModel.dart';
 import 'IPresenter.dart';
@@ -7,8 +9,11 @@ import 'IView.dart';
 
 /// BasePresenter — Presenter gốc cho toàn bộ MVP
 ///
+/// Tự động inject [DioBase] vào Model khi attachView() được gọi.
+/// DioBase đã tích hợp sẵn: auth interceptor, retry, error mapping, logging.
+///
 /// SOLID principles:
-/// - S: Chỉ quản lý vòng đời View-Model và presentation logic
+/// - S: Chỉ quản lý vòng đời View-Model và điều phối presentation logic
 /// - O: Kế thừa để mở rộng behavior
 /// - D: Phụ thuộc vào IView và IModel (abstractions)
 ///
@@ -19,8 +24,11 @@ import 'IView.dart';
 ///   IModel createModel() => LoginModel();
 ///
 ///   void doLogin(String email, String password) async {
-///     final result = await mvpModel.http.execute(() => mvpModel.login(email, password));
-///     if (result != null) mvpView.navigateToHome();
+///     final response = await mvpModel.dio.post(
+///       'auth/login',
+///       data: {'email': email, 'password': password},
+///     );
+///     if (response != null) mvpView.navigateToHome();
 ///   }
 /// }
 /// ```
@@ -40,16 +48,16 @@ abstract class BasePresenter<V extends IView, M extends BaseModel>
     context = (view as dynamic).context as BuildContext;
 
     _model = createModel() as M;
-    _model!.http = HttpBase(
+
+    // Inject DioBase vào Model — loading/error tự động được handle
+    _model!.dio = DioBase(
       onLoading: (isLoading) {
-        if (isLoading) {
-          mvpView.showLoading();
-        } else {
-          mvpView.hideLoading();
-        }
+        if (!isViewAttached) return;
+        isLoading ? mvpView.showLoading() : mvpView.hideLoading();
       },
-      onError: (error) {
-        mvpView.showMsg(error.toString(), code: -3);
+      onError: (Failure failure) {
+        if (!isViewAttached) return;
+        mvpView.showMsg(failure.message, code: failure.code);
       },
     );
   }

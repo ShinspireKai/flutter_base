@@ -1,3 +1,4 @@
+import 'package:flutter_base_project/core/network/dio_base.dart';
 import 'package:flutter_base_project/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:flutter_base_project/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flutter_base_project/features/auth/data/repositories/auth_repository_impl.dart';
@@ -21,6 +22,17 @@ Future<void> setupFeaturesDI(GetIt sl) async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   // ═══════════════════════════════════════════════════════════════════════
+  // Shared DioBase — dùng chung cho DataSources ở tầng data
+  // (Khác với DioBase inject vào Model trong MVP — cái đó tạo per-presenter)
+  // ═══════════════════════════════════════════════════════════════════════
+  sl.registerLazySingleton<DioBase>(
+    () => DioBase(
+      onLoading: (_) {}, // DataSource không cần loading overlay (BLoC lo)
+      onError: (_) {},   // Repository sẽ catch exception và map thành Failure
+    ),
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════
   // Auth Feature
   // ═══════════════════════════════════════════════════════════════════════
 
@@ -29,10 +41,10 @@ Future<void> setupFeaturesDI(GetIt sl) async {
     () => AuthLocalDataSourceImpl(sharedPreferences),
   );
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(),
+    () => AuthRemoteDataSourceImpl(dio: sl<DioBase>()),
   );
 
-  // Repository — inject abstractions vào implementation
+  // Repository
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl<AuthRemoteDataSource>(),
@@ -40,7 +52,7 @@ Future<void> setupFeaturesDI(GetIt sl) async {
     ),
   );
 
-  // Use Cases — registerFactory vì mỗi BLoC cần instance riêng
+  // Use Cases
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => CheckLoginStatusUseCase(sl<AuthRepository>()));
