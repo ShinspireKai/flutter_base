@@ -10,20 +10,25 @@ abstract class LoginState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Trạng thái ban đầu — giữ UI state (isPasswordVisible)
+/// Trạng thái ban đầu — giữ UI state (isPasswordVisible, isBiometricAvailable)
 class LoginInitial extends LoginState {
   final bool isPasswordVisible;
+  final bool isBiometricAvailable;
 
-  const LoginInitial({this.isPasswordVisible = false});
+  const LoginInitial({
+    this.isPasswordVisible = false,
+    this.isBiometricAvailable = false,
+  });
 
-  LoginInitial copyWith({bool? isPasswordVisible}) {
+  LoginInitial copyWith({bool? isPasswordVisible, bool? isBiometricAvailable}) {
     return LoginInitial(
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+      isBiometricAvailable: isBiometricAvailable ?? this.isBiometricAvailable,
     );
   }
 
   @override
-  List<Object?> get props => [isPasswordVisible];
+  List<Object?> get props => [isPasswordVisible, isBiometricAvailable];
 }
 
 /// Đang gọi API

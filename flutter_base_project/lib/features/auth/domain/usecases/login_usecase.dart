@@ -18,6 +18,7 @@ class LoginUseCase extends UseCase<UserEntity, LoginParams> {
     return _repository.login(
       email: params.email,
       password: params.password,
+      rememberMe: params.rememberMe,
     );
   }
 }
@@ -26,9 +27,14 @@ class LoginUseCase extends UseCase<UserEntity, LoginParams> {
 class LoginParams extends Equatable {
   final String email;
   final String password;
+  final bool rememberMe;
 
-  const LoginParams({required this.email, required this.password});
+  const LoginParams({
+    required this.email,
+    required this.password,
+    this.rememberMe = false,
+  });
 
   @override
-  List<Object?> get props => [email, password];
+  List<Object?> get props => [email, password, rememberMe];
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../core/l10n/app_localizations.dart';
 import 'IPresenter.dart';
 import 'IView.dart';
 
@@ -98,6 +99,7 @@ abstract class BaseViewState<P extends IPresenter, V extends BaseView>
   @override
   Future<dynamic> showMsg(String? msg, {int code = 1, void Function()? onFinish}) {
     if (msg == null) return Future.value(null);
+    final l10n = AppLocalizations.of(context)!;
 
     return showDialog(
       context: context,
@@ -105,7 +107,7 @@ abstract class BaseViewState<P extends IPresenter, V extends BaseView>
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          code < 0 ? 'Lỗi' : 'Thông báo',
+          code < 0 ? l10n.genericErrorTitle : l10n.genericNoticeTitle,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Text(msg),
@@ -115,7 +117,7 @@ abstract class BaseViewState<P extends IPresenter, V extends BaseView>
               Navigator.of(ctx).pop();
               onFinish?.call();
             },
-            child: const Text('Đóng'),
+            child: Text(l10n.closeButton),
           ),
         ],
       ),

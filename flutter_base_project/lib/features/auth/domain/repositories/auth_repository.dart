@@ -9,6 +9,7 @@ abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login({
     required String email,
     required String password,
+    required bool rememberMe,
   });
 
   Future<Either<Failure, bool>> logout();

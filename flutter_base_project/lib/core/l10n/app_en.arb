@@ -1,4 +1,5 @@
 {
+  "title_login_appbar": "新達 EIP · Inspection",
   "app_name": "English Quotes",
   "no_route_found": "No route found",
   "success": "Success",
@@ -15,20 +16,345 @@
   "default_error": "Something went wrong, please try again later.",
   "cache_error": "Cache error, please try again later.",
   "no_internet_error": "Please check your internet connection.",
-  "tilteQuoteoftheday":"Quote of the day",
-  "decriptionQuoteoftheday":"It's a taboo subject. How the dead are betrayed by the living. We who are living--we who have survived--understand that our guilt is what links us to the dead. At all times we can hear them calling to us, a growing incredulity in their voices, You will not forget me -- will you? How can you forget me? I have no one but you.",
-  "authors":"Authors: ",
-  "tags":"Tags: ",
-  "tilteAuthorHasBirthdayToday":"Author has a birthday today",
-  "tilteTopAuthor":"Top 5 author",
-  "tilteTopTags":"Top 10 tags",
-  "sourceText":"Source: Walter Cronkite. (n.d.). AZQuotes.com. Retrieved July 08, 2024, from AZQuotes.com Web site: https://www.azquotes.com/quote/1060774",
-  "topicOfQuote":"Topic of quote: ",
-  "relatedAuthor":"Related author",
-  "previousTextButton":"<< Previous",
-  "nextTextButton":"Next >>",
-  "authorInformation":"Author information",
-  "nameAuthor":"Name: ",
-  "brithday":"Date of Birth: ",
-  "occupation":"Occupation: "
+  "tilteQuoteoftheday": "Quote of the day",
+  "decriptionQuoteoftheday": "It's a taboo subject. How the dead are betrayed by the living. We who are living--we who have survived--understand that our guilt is what links us to the dead. At all times we can hear them calling to us, a growing incredulity in their voices, You will not forget me -- will you? How can you forget me? I have no one but you.",
+  "authors": "Authors: ",
+  "tags": "Tags: ",
+  "tilteAuthorHasBirthdayToday": "Author has a birthday today",
+  "tilteTopAuthor": "Top 5 author",
+  "tilteTopTags": "Top 10 tags",
+  "sourceText": "Source: Walter Cronkite. (n.d.). AZQuotes.com. Retrieved July 08, 2024, from AZQuotes.com Web site: https://www.azquotes.com/quote/1060774",
+  "topicOfQuote": "Topic of quote: ",
+  "relatedAuthor": "Related author",
+  "previousTextButton": "<< Previous",
+  "nextTextButton": "Next >>",
+  "authorInformation": "Author information",
+  "nameAuthor": "Name: ",
+  "brithday": "Date of Birth: ",
+  "occupation": "Occupation: ",
+  "save": "Save",
+  "retryButton": "Retry",
+  "errorOccurredTitle": "An error occurred",
+  "logoutAction": "Logout",
+  "logoutConfirmMessage": "Are you sure you want to log out?\nYou will need to log in again to use the app.",
+  "loggingOut": "Logging out...",
+  "comingSoon": "Coming soon",
+  "appTagline": "Digital Inspection",
+  "companyCodeLabel": "Company Code",
+  "companyCodeRequired": "Please enter the company code",
+  "accountLabel": "Account",
+  "accountHint": "Employee account",
+  "accountRequired": "Please enter your account",
+  "passwordLabel": "Password",
+  "passwordRequired": "Please enter your password",
+  "rememberMe": "Remember me",
+  "loginButton": "Login",
+  "biometricLoginButton": "🔒 Biometric login",
+  "biometricAuthReason": "Authenticate to log in to the app",
+  "biometricAuthFailed": "Biometric authentication failed or was cancelled.",
+  "demoInfoLabel": "Demo info",
+  "demoInspectorLabel": "Inspector: ",
+  "demoContractorLabel": "Contractor: ",
+  "contractorHomeTitle": "Technician / Contractor — Home",
+  "greetingMorning": "Good morning ☀️",
+  "greetingAfternoon": "Good afternoon 🌤",
+  "greetingEvening": "Good evening 🌙",
+  "sectionStatistics": "Statistics",
+  "sectionFeatures": "Features",
+  "statProjects": "Projects",
+  "statTasks": "Tasks",
+  "statNotifications": "Notifications",
+  "menuProfile": "Profile",
+  "menuSettings": "Settings",
+  "menuSupport": "Support",
+  "joinedSince": "Joined since {date}",
+  "@joinedSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "selectFeatureHint": "Please select a feature (shown based on permission)",
+  "todayInspectionLabel": "Today's Inspection",
+  "roleInspector": "Inspector",
+  "myRepairTasksLabel": "My Repair Tasks",
+  "roleTechnician": "Technician",
+  "pendingRecheckLabel": "Pending Recheck",
+  "maintenanceAssignedToMe": "Assigned to me for repair・{name}",
+  "@maintenanceAssignedToMe": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maintenanceStatusInProgress": "In Progress",
+  "maintenanceStatusPending": "Pending Maintenance",
+  "noMaintenanceTasks": "No maintenance tasks",
+  "assignedDateSuffix": "Assigned {date}",
+  "@assignedDateSuffix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "maintenanceReportTitle": "Repair Report",
+  "maintenanceReworkTitle": "Rework",
+  "maintenanceStatusReworking": "In Progress (Rework)",
+  "maintenanceStatusPendingRecheck": "Pending Recheck",
+  "maintenanceStatusCompleted": "Completed",
+  "reportedByInline": "Reported by: {name} · {datetime}",
+  "@reportedByInline": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "datetime": {
+        "type": "String"
+      }
+    }
+  },
+  "assignedByInline": "Assigned to: {name} · {datetime}",
+  "@assignedByInline": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "datetime": {
+        "type": "String"
+      }
+    }
+  },
+  "reportPhotosLabel": "Report Photos ×{count}",
+  "@reportPhotosLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rejectionReasonSectionTitle": "Recheck Rejection Reason",
+  "rejectionReasonSuffix": "（{reviewer}．{datetime}）",
+  "@rejectionReasonSuffix": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      },
+      "datetime": {
+        "type": "String"
+      }
+    }
+  },
+  "completionNoteLabel": "Completion Notes",
+  "completionNoteLabelRework": "This Rework's Completion Notes",
+  "completionNoteHintRework": "(Please enter the result of this rework)",
+  "completionNoteRequiredWarning": "Please enter completion notes before submitting.",
+  "completionPhotosLabel": "Completion Photos",
+  "updateProgressButton": "Update Progress",
+  "completeSendRecheckButton": "Complete, Send for Recheck",
+  "completeSendRecheckAgainButton": "Complete, Resend for Recheck",
+  "progressSavedToast": "Progress updated",
+  "sentForRecheckToast": "Submitted — awaiting recheck",
+  "taskAlreadyCompletedNotice": "This task is already completed",
+  "pendingRecheckListTitle": "Pending Recheck",
+  "pendingRecheckSubtitle": "Completed, awaiting recheck・{reviewer}",
+  "@pendingRecheckSubtitle": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      }
+    }
+  },
+  "completedAtSuffix": "Completed {date}",
+  "@completedAtSuffix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noPendingRecheckTasks": "No tasks pending recheck",
+  "recheckDecisionTitle": "Recheck",
+  "reportDescriptionLabel": "Report Description",
+  "repairedByLabel": "Repaired By",
+  "recheckViewPhotosLink": "View",
+  "recheckResultSectionTitle": "Recheck Result",
+  "recheckApproveButton": "Approve",
+  "recheckRejectButton": "Reject",
+  "recheckNoteLabel": "Recheck Notes",
+  "recheckNoteHint": "Enter your recheck comments",
+  "recheckNoteRequiredWarning": "Please enter recheck notes before submitting.",
+  "submitRecheckButton": "Submit Recheck",
+  "recheckRuleApprovedNote": "✓ Approve → Completed (case closed)",
+  "recheckRuleRejectedNote": "✗ Reject → Sent back for rework and redispatch",
+  "recheckApprovedToast": "Recheck approved, case closed",
+  "recheckRejectedToast": "Recheck rejected, sent back for rework",
+  "inspectorLabelWithName": "Inspector: {name}",
+  "@inspectorLabelWithName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noInspectionItemsToday": "No inspection items today",
+  "noteDialogTitle": "Note",
+  "noteHint": "Please enter abnormality description...",
+  "takePhoto": "Take photo",
+  "chooseFromGallery": "Choose from gallery",
+  "incompleteChecklistWarning": "There are still {count} items not completed. Please complete all items before submitting.",
+  "@incompleteChecklistWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routeLocationInline": "{location} · Route: {name}",
+  "@routeLocationInline": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "submitInspectionReport": "Submit Inspection Report",
+  "inspectionCompletedTitle": "Inspection Completed",
+  "reportSubmittedMessage": "Inspection report submitted",
+  "routeLabel": "Route",
+  "completedLabel": "Completed",
+  "abnormalLabel": "Abnormal",
+  "abnormalCountReported": "{count} items (reported)",
+  "@abnormalCountReported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "abnormalCountUnit": "{count} items",
+  "@abnormalCountUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "submittedAtLabel": "Submitted at",
+  "backToTodayInspection": "Back to Today's Inspection",
+  "photoRecordTitle": "Photo Record · {index}. {name}",
+  "@photoRecordTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "photoRecordButtonLabel": "Photo Record",
+  "multiplePhotosHint": "Abnormal items can attach multiple photos",
+  "severityLevelLabel": "Severity Level",
+  "severityHighHint": "🔴 High: Needs immediate action (system prioritizes work order dispatch).",
+  "severityMediumHint": "🟡 Medium: Must be handled within the specified time limit.",
+  "severityLowHint": "⚪ Low: Continue monitoring or handle per maintenance schedule.",
+  "abnormalDescriptionLabel": "Abnormality Description",
+  "openCamera": "Open Camera",
+  "doneBackToChecklist": "Done, back to checklist",
+  "signatureRequiredWarning": "Please sign to confirm before submitting the report.",
+  "signatureConfirmationTitle": "Signature Confirmation",
+  "inspectorSignatureLabel": "Inspector Signature",
+  "completedItemsLabel": "Completed Items",
+  "abnormalItemsLabel": "Abnormal Items",
+  "signHerePlaceholder": "✍ Please sign here",
+  "clearAndResign": "Clear & Re-sign",
+  "confirmSubmit": "Confirm Submit",
+  "drawerHome": "Home",
+  "statusNormal": "Normal",
+  "abnormalWithLevelPrefix": "Abnormal · Level ",
+  "checklistNotFilledYet": "Level／Photo／Note not filled in yet",
+  "photoCountLabel": "Photos ×{count}",
+  "@photoCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedCountLabel": "{completed}/{total} completed",
+  "@completedCountLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statusCompleted": "Completed",
+  "statusInProgress": "In Progress",
+  "statusNotStarted": "Not Started",
+  "contractorEntryTitle": "Repair Ticket Check-in",
+  "contractorEntryInstructionLine1": "Opened from an SMS/Email link, the URL already contains the ticket number",
+  "contractorEntryInstructionExample": "e.g. eip.shinspire.com.tw/repair?no={ticketNo}",
+  "@contractorEntryInstructionExample": {
+    "placeholders": {
+      "ticketNo": {
+        "type": "String"
+      }
+    }
+  },
+  "contractorEntryTicketNoLabel": "Ticket No.",
+  "contractorEntryIssueLabel": "Issue",
+  "contractorEntryAssignedContractorLabel": "Assigned Contractor",
+  "contractorEntryCodeHint": "Enter the 6-digit code",
+  "contractorEntryConfirmButton": "Confirm & Enter",
+  "contractorEntryFootnote": "※ The code was sent by SMS with the assignment — valid for this ticket only and time-limited",
+  "contractorEntryMissingTicket": "Please open this page from the SMS/Email link",
+  "contractorEntryInvalidCode": "Incorrect code, please try again",
+  "contractorEntryTicketNotFound": "Ticket not found",
+  "contractorReportTitle": "Repair Report · #{ticketNo}",
+  "@contractorReportTitle": {
+    "placeholders": {
+      "ticketNo": {
+        "type": "String"
+      }
+    }
+  },
+  "contractorEntryCodeLabel": "Entry Code",
+  "severityLowLabel": "⚪ Low",
+  "severityMediumLabel": "🟡 Medium",
+  "severityHighLabel": "🔴 High",
+  "currentStatusLabel": "Current Status:",
+  "weekdayMon": "Mon",
+  "weekdayTue": "Tue",
+  "weekdayWed": "Wed",
+  "weekdayThu": "Thu",
+  "weekdayFri": "Fri",
+  "weekdaySat": "Sat",
+  "weekdaySun": "Sun",
+  "notificationChannelName": "General Notifications",
+  "notificationChannelDescription": "Default notification channel for the app",
+  "genericErrorTitle": "Error",
+  "genericNoticeTitle": "Notice",
+  "closeButton": "Close",
+  "fcmTokenSnackbarMessage": "FCM Token: {token}",
+  "@fcmTokenSnackbarMessage": {
+    "placeholders": {
+      "token": {
+        "type": "String"
+      }
+    }
+  },
+  "copyButtonLabel": "Copy",
+  "fcmTokenCopiedToast": "FCM token copied",
+  "splashAppName": "Flutter Base",
+  "splashTagline": "Clean Architecture · BLoC · MVP"
 }

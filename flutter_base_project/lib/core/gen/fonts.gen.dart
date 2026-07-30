@@ -13,6 +13,6 @@ class FontFamily {
   /// Font family: Cairo
   static const String cairo = 'Cairo';
 
-  /// Font family: DMSans
-  static const String dMSans = 'DMSans';
+  /// Font family: DM Sans
+  static const String dMSans = 'DM Sans';
 }

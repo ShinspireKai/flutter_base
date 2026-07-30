@@ -2,9 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../mvp/BasePresenter.dart';
 import '../../../../../mvp/IModel.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/user_role.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
-import '../bloc/login_state.dart';
 import 'i_login_view.dart';
 import 'login_model.dart';
 
@@ -24,9 +25,14 @@ class LoginPresenter extends BasePresenter<ILoginView, LoginModel> {
   @override
   IModel createModel() => LoginModel();
 
-  /// Gọi khi BLoC emit LoginSuccess — Presenter ra lệnh View navigate
-  void onLoginSuccess() {
-    mvpView.navigateToHome();
+  /// Gọi khi BLoC emit LoginSuccess — Presenter quyết định điều hướng
+  /// đến đúng Home theo role (Inspector / Contractor)
+  void onLoginSuccess(UserEntity user) {
+    if (user.isContractor) {
+      mvpView.navigateToContractorHome();
+    } else {
+      mvpView.navigateToInspectorHome();
+    }
   }
 
   /// Gọi khi BLoC emit LoginFailure — Presenter ra lệnh View hiện lỗi
@@ -44,15 +50,29 @@ class LoginPresenter extends BasePresenter<ILoginView, LoginModel> {
     required LoginBloc bloc,
     required String email,
     required String password,
+    bool rememberMe = false,
   }) {
     // Lưu lại email lần cuối trong Model
     mvpModel.lastAttemptedEmail = email;
 
-    bloc.add(LoginSubmitted(email: email, password: password));
+    bloc.add(
+      LoginSubmitted(email: email, password: password, rememberMe: rememberMe),
+    );
   }
 
   /// Toggle hiển thị mật khẩu
   void togglePasswordVisibility(LoginBloc bloc) {
     bloc.add(const LoginPasswordVisibilityToggled());
+  }
+
+  /// Submit đăng nhập bằng sinh trắc học — Presenter dispatch event vào BLoC
+  void biometricLogin(
+    LoginBloc bloc, {
+    required String reason,
+    required String failureMessage,
+  }) {
+    bloc.add(
+      LoginBiometricRequested(reason: reason, failureMessage: failureMessage),
+    );
   }
 }

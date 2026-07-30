@@ -1,0 +1,92 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+
+  private_lane :build_changelog do |options|
+    env = options[:env]
+
+    best_hash = nil
+    best_number = -1
+
+    sh("git log --oneline | grep 'build: new version #{env} - ' || true").strip.split("\n").each do |line|
+      match = line.match(/build: new version #{env} - (\d+)/)
+      next unless match
+
+      num = match[1].to_i
+      if num > best_number
+        best_number = num
+        best_hash = line.split(' ').first
+      end
+    end
+
+    what_new_section = ""
+    unless best_hash.nil?
+      commit_messages = sh("git log #{best_hash}..HEAD --pretty=format:'%s'").strip
+      unless commit_messages.empty?
+        commits = commit_messages.split("\n").map { |c| "- #{c}" }.join("\n")
+        what_new_section = "\n\nWhat new:\n#{commits}"
+      end
+    end
+
+    "SHINDA INSPECTION APP RELEASE (#{env}) - #{Time.now.strftime('%Y-%m-%d')}#{what_new_section}"
+  end
+
+  private_lane :upload_testflight do |options|
+    params = {
+      changelog: options[:changelog],
+      beta_app_description: options[:changelog],
+      beta_app_feedback_email: ENV['APPLE_DEVELOPER_USERNAME'],
+      notify_external_testers: true,
+      wait_for_uploaded_build: true,
+      submit_beta_review: true,
+      skip_waiting_for_build_processing: true,
+    }
+    params[:ipa] = options[:ipa] if options[:ipa]
+    upload_to_testflight(params)
+  end
+
+  desc "Preview changelog for a specific env (env:SIT, env:UTA, env:PROD)"
+  lane :test_changelog do |options|
+    env = (options[:env] || "SIT").upcase
+    changelog = build_changelog(env: env)
+    puts "---CHANGELOG PREVIEW (#{env})---"
+    puts changelog
+  end
+
+  desc "Build and push SIT build to TestFlight"
+  lane :sit do
+    changelog = build_changelog(env: "SIT")
+    increment_build_number(xcodeproj: "Runner.xcodeproj")
+    # Dùng `flutter build ipa` thay vì build_app (gym) trực tiếp — Flutter tự
+    # sinh Generated.xcconfig ép CONFIGURATION_BUILD_DIR về build/ios/iphoneos
+    # cố định, khiến `xcodebuild archive` gọi thẳng qua gym bị lệch thư mục
+    # build với Pods.xcodeproj (lỗi "framework 'Pods_Runner' not found").
+    # uta/prod đã dùng flutter build ipa nên không gặp vấn đề này.
+    sh("flutter", "build", "ipa", "--release", "--no-tree-shake-icons")
+    # Dùng đường dẫn tuyệt đối tính từ vị trí Fastfile — tránh phụ thuộc vào
+    # working directory hiện tại của tiến trình fastlane (dễ sai lệch số cấp "../").
+    ipa_path = Dir.glob(File.expand_path("../../build/ios/ipa/*.ipa", File.dirname(__FILE__))).first
+    UI.user_error!("Không tìm thấy file .ipa trong build/ios/ipa/ sau khi build") if ipa_path.nil?
+    upload_testflight(changelog: changelog, ipa: ipa_path)
+  end
+
+  desc "Build and push UTA build to TestFlight"
+  lane :uta do
+    sh("flutter", "build", "ipa", "--release", "-t", "lib/main_uta.dart", "--no-tree-shake-icons")
+    changelog = build_changelog(env: "UTA")
+    upload_testflight(changelog: changelog, ipa: "../build/ios/ipa/jean_inspection.ipa")
+  end
+
+  desc "Build and push PROD build to TestFlight"
+  lane :prod do
+    sh("flutter", "build", "ipa", "--release", "-t", "lib/main_prod.dart", "--no-tree-shake-icons")
+    changelog = build_changelog(env: "PROD")
+    upload_testflight(changelog: changelog, ipa: "../build/ios/ipa/jean_inspection.ipa")
+  end
+
+end

@@ -13,8 +13,23 @@ import 'package:flutter/material.dart';
 class ColorName {
   ColorName._();
 
+  /// Color: #eef1f2
+  static const Color bgAddPhoto = Color(0xFFEEF1F2);
+
+  /// Color: #f7faf9
+  static const Color bgInforBox = Color(0xFFF7FAF9);
+
   /// Color: #000000
   static const Color black = Color(0xFF000000);
+
+  /// Color: #2f6f8f
+  static const Color bluePrimary = Color(0xFF2F6F8F);
+
+  /// Color: #e2e8ea
+  static const Color borderOutline = Color(0xFFE2E8EA);
+
+  /// Color: #2f6f8f
+  static const Color btnColorPrimary = Color(0xFF2F6F8F);
 
   /// Color: #0C0C0C
   static const Color colorBackgroundDark = Color(0xFF0C0C0C);
@@ -31,7 +46,7 @@ class ColorName {
   /// Color: #E7E7E7
   static const Color colorCardLight = Color(0xFFE7E7E7);
 
-  /// Color: #e61f34
+  /// Color: #E61F34
   static const Color colorError = Color(0xFFE61F34);
 
   /// Color: #0C1A30
@@ -79,8 +94,23 @@ class ColorName {
   /// Color: #FAFAFA
   static const Color colorTextFieldLight = Color(0xFFFAFAFA);
 
+  /// Color: #8a9aa0
+  static const Color colorTextGrey = Color(0xFF8A9AA0);
+
+  /// Color: #c9871f
+  static const Color colorTextOrgan = Color(0xFFC9871F);
+
   /// Color: #FFFFFF
   static const Color colorWhite = Color(0xFFFFFFFF);
+
+  /// Color: #3a8a5f
+  static const Color greenCheckBg = Color(0xFF3A8A5F);
+
+  /// Color: #2d4a4f
+  static const Color greenPrimary = Color(0xFF2D4A4F);
+
+  /// Color: #c0392b
+  static const Color redDanger = Color(0xFFC0392B);
 
   /// Color: #FFFFFF
   static const Color white = Color(0xFFFFFFFF);

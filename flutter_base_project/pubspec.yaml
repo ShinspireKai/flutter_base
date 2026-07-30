@@ -1,69 +1,92 @@
-name: flutter_base_project
+name: inspection_app
 description: "A new Flutter project."
-publish_to: "none"
-version: 0.1.0
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
-  sdk: ">=3.4.4 <4.0.0"
+  sdk: ^3.12.2
 
 dependencies:
-  auto_route: ^9.2.2
-  cached_network_image: ^3.4.0
-  dio: ^5.5.0+1
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^4.2.1
-  flutter_svg: ^2.0.10+1
-  get_it: ^7.7.0
-  injectable: ^2.4.4
+
+  # Routing
+  auto_route: ^9.2.2
+
+  # Deep linking (SMS/Email link → 維修單回報)
+  app_links: ^6.3.2
+
+  # State management
   flutter_bloc: ^8.1.6
   equatable: ^2.0.5
-  dartz: ^0.10.1
-  internet_connection_checker: ^1.0.0+1
-  intl: any
-  isar: ^3.1.0+1
+
+  # DI
+  get_it: ^7.7.0
+  injectable: ^2.4.4
+
+  # Network
+  dio: ^5.7.0
   pretty_dio_logger: ^1.4.0
+  internet_connection_checker: ^1.0.0+1
+
+  # Logging
+  logger: ^2.5.0
+
+  # Functional error handling
+  dartz: ^0.10.1
+
+  # Local storage
   shared_preferences: ^2.3.2
-  fluttertoast: ^9.0.0
+  flutter_secure_storage: ^9.2.2
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.4
+
+  # Media
+  image_picker: ^1.1.2
+
+  # UI / assets
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  vector_graphics: ^1.1.15
   flutter_easyloading: ^3.0.5
+  fluttertoast: ^8.2.8
+  intl: ^0.20.2
+
+  # Biometric auth
+  local_auth: ^3.0.2
+  font_awesome_flutter: ^11.0.0
+  firebase_core: ^4.12.1
+  firebase_messaging: ^16.4.3
+  flutter_local_notifications: ^22.0.1
 
 dev_dependencies:
-  auto_route_generator: ^9.3.1
-  injectable_generator:
-  build_runner: ^2.4.13
-  flutter_gen_runner:
   flutter_test:
     sdk: flutter
-
-  json_serializable: ^6.2.0
-  flutter_lints: ^4.0.0
-
-dependency_overrides:
-  dart_style: ^3.1.0
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  injectable_generator: ^2.6.2
+  auto_route_generator: ^9.0.0
+  flutter_gen_runner: 5.7.0
 
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/colors/colors.xml
+    - assets/images/
   fonts:
-    - family: DMSans
+    - family: DM Sans
       fonts:
-        - asset: assets/fonts/DMSans-Regular.ttf
+        - asset: assets/fonts/dm_sans/DMSans-Variable.ttf
     - family: Cairo
       fonts:
-        - asset: assets/fonts/Cairo-Regular.ttf
-  assets:
-    - assets/images/
-    - assets/fonts/
-    - assets/colors/
+        - asset: assets/fonts/cairo/Cairo-Variable.ttf
 
 flutter_gen:
-  output: lib/core/gen/ # Optional (default: lib/gen/)
-  line_length: 80 # Optional (default: 80)
-  integrations:
-    flutter_svg: true
-    fonts: true
+  output: lib/core/gen/
   colors:
     inputs:
       - assets/colors/colors.xml

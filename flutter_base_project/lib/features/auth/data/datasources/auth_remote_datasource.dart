@@ -23,7 +23,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final DioBase _dio;
 
   /// DioBase được inject từ ngoài vào (qua Repository hoặc DI)
-  AuthRemoteDataSourceImpl({required DioBase dio}) : _dio = dio;
+  AuthRemoteDataSourceImpl({required this._dio});
 
   @override
   Future<UserModel> login({
@@ -55,10 +55,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return UserModel(
         id: 'usr_001',
         email: email,
-        name: 'Nguyễn Văn A',
+        name: '林先生',
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         avatarUrl: null,
-        role: 'user',
+        role: '巡檢人員', // 巡檢人員
+      );
+    }
+
+    if (email == 'contractor@example.com' && password == 'password123') {
+      return UserModel(
+        id: 'usr_002',
+        email: email,
+        name: '林先生 2',
+        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        avatarUrl: null,
+        role: 'contractor', // 維修人員 / 外包廠商
       );
     }
 

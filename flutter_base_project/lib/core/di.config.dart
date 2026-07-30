@@ -1,4 +1,3 @@
-// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -29,6 +28,9 @@ extension GetItInjectableX on _i174.GetIt {
       environmentFilter,
     );
     gh.lazySingleton<_i732.DioFactory>(() => _i732.DioFactory());
+    gh.factory<_i672.NetworkInfo>(() => _i672.NetworkInfoImpl());
+    gh.singleton<_i39.ApiService>(
+        () => _i39.ApiService(gh<_i732.DioFactory>()));
     await gh.factoryAsync<_i283.LocalStorage>(
       () {
         final i = _i283.LocalStorageImpl();
@@ -36,9 +38,6 @@ extension GetItInjectableX on _i174.GetIt {
       },
       preResolve: true,
     );
-    gh.factory<_i672.NetworkInfo>(() => _i672.NetworkInfoImpl());
-    gh.singleton<_i39.ApiService>(
-        () => _i39.ApiService(gh<_i732.DioFactory>()));
     return this;
   }
 }

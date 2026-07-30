@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inspection_app/util/widgets/custom_button.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/gen/colors.gen.dart';
+import '../../../../util/widgets/custom_text_field.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_state.dart';
 import '../mvp/login_presenter.dart';
@@ -24,129 +28,168 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
+  final _companyCodeCtrl = TextEditingController();
+  final _accountNumberCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _companyCodeFocus = FocusNode();
+  final _accountNumberFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  bool _rememberMe = false;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _companyCodeCtrl.dispose();
+    _accountNumberCtrl.dispose();
     _passwordCtrl.dispose();
+    _companyCodeFocus.dispose();
+    _accountNumberFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
   void _submit() {
+    _passwordFocus.unfocus();
     if (_formKey.currentState?.validate() ?? false) {
       // Forward lên Presenter — đúng luồng MVP
       widget.presenter.submitLogin(
         bloc: context.read<LoginBloc>(),
-        email: _emailCtrl.text.trim(),
+        email: _accountNumberCtrl.text.trim(),
         password: _passwordCtrl.text,
+        rememberMe: _rememberMe,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         final isLoading = state is LoginLoading;
-        final isPasswordVisible =
-            state is LoginInitial ? state.isPasswordVisible : false;
+        final isBiometricAvailable = state is LoginInitial
+            ? state.isBiometricAvailable
+            : false;
 
         return Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Email ──────────────────────────────────────────────────
-              TextFormField(
-                controller: _emailCtrl,
+              // ── 公司代碼 ──────────────────────────────────────────────────
+              CustomTextField(
+                labelText: l10n.companyCodeLabel,
+                hintText: l10n.companyCodeLabel,
+                controller: _companyCodeCtrl,
+                focusNode: _companyCodeFocus,
                 enabled: !isLoading,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'example@email.com',
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Vui lòng nhập email';
-                  }
-                  if (!RegExp(r'^[\w.-]+@[\w.-]+\.\w+$').hasMatch(v.trim())) {
-                    return 'Email không hợp lệ';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // ── Password ───────────────────────────────────────────────
-              TextFormField(
-                controller: _passwordCtrl,
-                enabled: !isLoading,
-                obscureText: !isPasswordVisible,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: 'Mật khẩu',
-                  hintText: '••••••••',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      isPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                    // Forward lên Presenter — không gọi BLoC trực tiếp từ widget
-                    onPressed: () => widget.presenter
-                        .togglePasswordVisibility(context.read<LoginBloc>()),
-                  ),
-                ),
+                onFieldSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_accountNumberFocus),
                 validator: (v) {
                   if (v == null || v.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
-                  }
-                  if (v.length < 6) {
-                    return 'Mật khẩu phải có ít nhất 6 ký tự';
+                    return l10n.companyCodeRequired;
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 8),
+
+              // ── 帳號 ──────────────────────────────────────────────────
+              CustomTextField(
+                labelText: l10n.accountLabel,
+                hintText: l10n.accountHint,
+                controller: _accountNumberCtrl,
+                focusNode: _accountNumberFocus,
+                enabled: !isLoading,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_passwordFocus),
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return l10n.accountRequired;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // ── 密碼 ───────────────────────────────────────────────
+              CustomTextField(
+                labelText: l10n.passwordLabel,
+                hintText: l10n.passwordLabel,
+                controller: _passwordCtrl,
+                focusNode: _passwordFocus,
+                enabled: !isLoading,
+                keyboardType: TextInputType.visiblePassword,
+                isPassword: true,
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return l10n.passwordRequired;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+
+              //── Check Remember Account ──────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      checkColor: Colors.white,
+                      fillColor: WidgetStatePropertyAll(
+                        _rememberMe ? Colors.blueAccent : Colors.white,
+                      ),
+                      side: const BorderSide(
+                        color: ColorName.colorTextGrey,
+                        width: 1,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onChanged: isLoading
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                    ),
+                    Text(
+                      l10n.rememberMe,
+                      style: const TextStyle(color: ColorName.colorTextGrey),
+                    ),
+                  ],
+                ),
+              ),
 
               // ── Submit button ──────────────────────────────────────────
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor:
-                        Theme.of(context).primaryColor.withValues(alpha: 0.6),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Text(
-                          'Đăng nhập',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
+              CustomButton(
+                text: l10n.loginButton,
+                isLoading: isLoading,
+                elevation: 0,
+                onPressed: isLoading ? null : _submit,
+              ),
+              const SizedBox(height: 11),
+              CustomButton(
+                text: l10n.biometricLoginButton,
+                isOutline: true,
+                isLoading: isLoading,
+                elevation: 0,
+                onPressed: isLoading
+                    ? null
+                    : () => widget.presenter.biometricLogin(
+                        context.read<LoginBloc>(),
+                        reason: l10n.biometricAuthReason,
+                        failureMessage: l10n.biometricAuthFailed,
+                      ),
               ),
             ],
           ),

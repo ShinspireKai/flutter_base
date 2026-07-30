@@ -1,8 +1,12 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../mvp/BaseView.dart';
+import '../../../../core/gen/colors.gen.dart';
+import '../../../../core/router/auto_route_config.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
@@ -54,8 +58,15 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
   // ─── ILoginView implementation ────────────────────────────────────────────
 
   @override
-  void navigateToHome() {
-    context.router.replaceNamed('/home');
+  void navigateToInspectorHome() {
+    context.router.replaceAll([const InspectorHomeRoute()]);
+  }
+
+  @override
+  void navigateToContractorHome() {
+    // Mock demo: ticket #0523 (mã 進入代碼 284913) được seed sẵn trong
+    // MaintenanceTaskRemoteDataSourceImpl để test luồng không cần SMS thật
+    context.router.replaceAll([ContractorHomeRoute(ticketNo: '0523')]);
   }
 
   @override
@@ -95,7 +106,7 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
       listener: (ctx, state) {
         // Presenter là coordinator — ra lệnh cho View dựa trên BLoC state
         if (state is LoginSuccess) {
-          presenter?.onLoginSuccess();
+          presenter?.onLoginSuccess(state.user);
         }
         if (state is LoginFailure) {
           presenter?.onLoginFailure(state.errorMessage);
@@ -103,23 +114,35 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
         }
       },
       child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 64),
-                _buildHeader(),
-                const SizedBox(height: 48),
-                // LoginForm nhận presenter để submit qua đúng luồng MVP
-                LoginForm(presenter: presenter!),
-                const SizedBox(height: 32),
-                _buildDivider(),
-                const SizedBox(height: 20),
-                _buildDemoHint(),
-                const SizedBox(height: 40),
-              ],
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context)!.title_login_appbar,
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 64),
+                  _buildHeader(),
+                  const SizedBox(height: 48),
+                  // LoginForm nhận presenter để submit qua đúng luồng MVP
+                  LoginForm(presenter: presenter!),
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 32),
+                    _buildDivider(),
+                    const SizedBox(height: 20),
+                    _buildDemoHint(),
+                    const SizedBox(height: 40),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
@@ -130,53 +153,52 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
   // ─── Widgets ──────────────────────────────────────────────────────────────
 
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 68,
-          height: 68,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withValues(alpha: 0.65),
+    return Center(
+      child: Column(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).primaryColor,
+                  Theme.of(context).primaryColor.withValues(alpha: 0.65),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 7),
+                ),
               ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.35),
-                blurRadius: 18,
-                offset: const Offset(0, 7),
+            child: Center(
+              child: Text(
+                '🧭',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorLight,
+                  height: 1.25,
+                ),
               ),
-            ],
+            ),
           ),
-          child: const Icon(
-            Icons.lock_outline_rounded,
-            color: Colors.white,
-            size: 34,
+          const SizedBox(height: 14),
+          Text(
+            AppLocalizations.of(context)!.appTagline,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: ColorName.greenPrimary,
+              height: 1.25,
+            ),
           ),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          'Chào mừng\ntrở lại 👋',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorLight,
-                height: 1.25,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Đăng nhập để tiếp tục sử dụng app',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).primaryColorDark,
-              ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -187,10 +209,10 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'Thông tin demo',
+            AppLocalizations.of(context)!.demoInfoLabel,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).primaryColorDark,
-                ),
+              color: Theme.of(context).primaryColorDark,
+            ),
           ),
         ),
         const Expanded(child: Divider()),
@@ -221,8 +243,25 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
               TextSpan(
                 style: Theme.of(context).textTheme.bodySmall,
                 children: [
+                  TextSpan(text: AppLocalizations.of(context)!.demoInspectorLabel),
                   TextSpan(
                     text: 'test@example.com',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const TextSpan(text: '  /  '),
+                  TextSpan(
+                    text: 'password123',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  TextSpan(text: '\n${AppLocalizations.of(context)!.demoContractorLabel}'),
+                  TextSpan(
+                    text: 'contractor@example.com',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).primaryColor,

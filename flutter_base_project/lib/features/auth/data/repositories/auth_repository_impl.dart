@@ -25,10 +25,12 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> login({
     required String email,
     required String password,
+    required bool rememberMe,
   }) async {
     try {
       final user = await _remote.login(email: email, password: password);
       await _local.cacheUser(user); // Cache sau khi login thành công
+      await _local.saveRememberMe(rememberMe);
       return Right(user);
     } on Exception catch (e) {
       return Left(

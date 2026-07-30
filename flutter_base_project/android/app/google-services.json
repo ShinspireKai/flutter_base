@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1038440651939",
+    "project_id": "shindainspection",
+    "storage_bucket": "shindainspection.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1038440651939:android:8d25ee8eac9c399292f316",
+        "android_client_info": {
+          "package_name": "com.shinda.inspectionapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1ZanYpMbP7wPjQwE1Bjeg7PFO_X5ylHM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
