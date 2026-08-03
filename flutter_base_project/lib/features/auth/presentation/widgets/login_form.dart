@@ -77,6 +77,7 @@ class _LoginFormState extends State<LoginForm> {
             children: [
               // ── 公司代碼 ──────────────────────────────────────────────────
               CustomTextField(
+                key: const Key('login_company_code_field'),
                 labelText: l10n.companyCodeLabel,
                 hintText: l10n.companyCodeLabel,
                 controller: _companyCodeCtrl,
@@ -97,6 +98,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── 帳號 ──────────────────────────────────────────────────
               CustomTextField(
+                key: const Key('login_account_field'),
                 labelText: l10n.accountLabel,
                 hintText: l10n.accountHint,
                 controller: _accountNumberCtrl,
@@ -117,6 +119,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── 密碼 ───────────────────────────────────────────────
               CustomTextField(
+                key: const Key('login_password_field'),
                 labelText: l10n.passwordLabel,
                 hintText: l10n.passwordLabel,
                 controller: _passwordCtrl,
@@ -172,6 +175,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── Submit button ──────────────────────────────────────────
               CustomButton(
+                key: const Key('login_submit_button'),
                 text: l10n.loginButton,
                 isLoading: isLoading,
                 elevation: 0,

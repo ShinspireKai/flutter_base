@@ -114,6 +114,7 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
         }
       },
       child: Scaffold(
+        key: const Key('login_page_scaffold'),
         appBar: AppBar(
           title: Text(
             AppLocalizations.of(context)!.title_login_appbar,

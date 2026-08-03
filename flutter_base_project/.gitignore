@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# E2E screenshot/video reports — artifact sinh ra mỗi lần chạy `flutter drive`,
+# không phải nguồn để commit (xem integration_test/README.md)
+/integration_test/reports/
+
 # Symbolication related
 app.*.symbols
 

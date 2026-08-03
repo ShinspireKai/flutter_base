@@ -193,6 +193,7 @@ class _InspectorHomePageState
         }
       },
       child: Scaffold(
+        key: const Key('inspector_home_page_scaffold'),
         appBar: _buildAppBar(),
         body: BlocBuilder<InspectorHomeBloc, InspectorHomeState>(
           builder: (context, state) {
