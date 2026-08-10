@@ -8,10 +8,16 @@ import 'package:integration_test/integration_test_driver.dart';
 /// Test Lab) không hỗ trợ `flutter test integration_test/...` trực tiếp.
 ///
 /// Ngoài chạy test, entrypoint này còn xuất **báo cáo hình ảnh**: mọi lệnh
-/// `captureScreenshot(tester, name)` gọi trong `integration_test/flows/*`
+/// `captureScreenshot($, name)` gọi trong `integration_test/flows/*`
 /// (xem `integration_test/helpers/test_app.dart`) được driver gom lại và
 /// ghi ra `integration_test/reports/<run>/` — xem
 /// `integration_test/README.md` mục "Báo cáo hình ảnh/video".
+///
+/// Vẫn hoạt động bình thường với test viết bằng Patrol (`patrolTest`) — chỉ
+/// cần test KHÔNG gọi API native automation của Patrol (`$.native`/
+/// `$.platform.*`); những API đó cần chạy qua `patrol test` (xem
+/// `integration_test/README.md` mục "Patrol"), không chạy được qua
+/// `flutter drive` thuần.
 ///
 /// Cách dùng:
 ///   flutter drive \

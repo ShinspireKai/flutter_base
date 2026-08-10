@@ -1,4 +1,5 @@
 import '../../../../core/network/dio_base.dart';
+import '../../../../testing/fixtures/auth_fixtures.dart';
 import '../models/user_model.dart';
 
 /// Abstract interface — Interface Segregation
@@ -51,25 +52,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // ── Mock data — xoá khi có API thật ──────────────────────────────────
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    if (email == 'test@example.com' && password == 'password123') {
+    if (email == AuthFixtures.demoInspectorEmail &&
+        password == AuthFixtures.demoInspectorPassword) {
       return UserModel(
-        id: 'usr_001',
+        id: AuthFixtures.demoInspectorId,
         email: email,
-        name: '林先生',
+        name: AuthFixtures.demoInspectorName,
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         avatarUrl: null,
-        role: '巡檢人員', // 巡檢人員
+        role: AuthFixtures.demoInspectorRole, // 巡檢人員
       );
     }
 
-    if (email == 'contractor@example.com' && password == 'password123') {
+    if (email == AuthFixtures.demoContractorEmail &&
+        password == AuthFixtures.demoContractorPassword) {
       return UserModel(
-        id: 'usr_002',
+        id: AuthFixtures.demoContractorId,
         email: email,
-        name: '林先生 2',
+        name: AuthFixtures.demoContractorName,
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         avatarUrl: null,
-        role: 'contractor', // 維修人員 / 外包廠商
+        role: AuthFixtures.demoContractorRole, // 維修人員 / 外包廠商
       );
     }
 

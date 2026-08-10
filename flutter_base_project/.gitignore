@@ -37,6 +37,11 @@ migrate_working_dir/
 # không phải nguồn để commit (xem integration_test/README.md)
 /integration_test/reports/
 
+# Patrol CLI — file sinh ra khi build/chạy `patrol test`, không phải nguồn
+# để commit (xem integration_test/README.md mục "Patrol")
+**/test_bundle.dart
+.patrol.env
+
 # Symbolication related
 app.*.symbols
 

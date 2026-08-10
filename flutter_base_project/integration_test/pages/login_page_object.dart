@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
+
+import 'package:inspection_app/testing/test_keys.dart';
 
 /// Page Object cho LoginPage.
 ///
@@ -7,17 +9,23 @@ import 'package:flutter_test/flutter_test.dart';
 /// case trong `flows/` chỉ gọi hành vi cấp cao (`login(...)`) mà không cần
 /// biết Key hay cấu trúc widget bên trong. Khi UI đổi (đổi Key, thêm bước),
 /// chỉ cần sửa ở đây, không phải sửa từng test case.
+///
+/// Dùng Patrol's `$(key)` (`PatrolFinder`) thay vì `find.byKey(...)` thuần —
+/// `PatrolFinder` tự động chờ/thử lại tới khi widget xuất hiện trước khi
+/// `tap()`/`enterText()`, nên đỡ phải tự tính `pumpAndSettle()` cho từng
+/// bước nhỏ. `PatrolFinder` vẫn tương thích thẳng với `expect(_, findsOneWidget)`
+/// (nó implement `Finder` của flutter_test), nên các assertion trong flow
+/// không cần đổi gì.
 class LoginPageObject {
-  LoginPageObject(this.tester);
+  LoginPageObject(this.$);
 
-  final WidgetTester tester;
+  final PatrolIntegrationTester $;
 
-  Finder get scaffold => find.byKey(const Key('login_page_scaffold'));
-  Finder get companyCodeField =>
-      find.byKey(const Key('login_company_code_field'));
-  Finder get accountField => find.byKey(const Key('login_account_field'));
-  Finder get passwordField => find.byKey(const Key('login_password_field'));
-  Finder get submitButton => find.byKey(const Key('login_submit_button'));
+  PatrolFinder get scaffold => $(TestKeys.loginPageScaffold);
+  PatrolFinder get companyCodeField => $(TestKeys.loginCompanyCodeField);
+  PatrolFinder get accountField => $(TestKeys.loginAccountField);
+  PatrolFinder get passwordField => $(TestKeys.loginPasswordField);
+  PatrolFinder get submitButton => $(TestKeys.loginSubmitButton);
 
   /// Điền form và nhấn đăng nhập, chờ tới khi màn hình kế tiếp render xong.
   ///
@@ -44,14 +52,14 @@ class LoginPageObject {
     required String account,
     required String password,
   }) async {
-    await tester.enterText(companyCodeField, companyCode);
-    await tester.enterText(accountField, account);
-    await tester.enterText(passwordField, password);
+    await companyCodeField.enterText(companyCode);
+    await accountField.enterText(account);
+    await passwordField.enterText(password);
 
     FocusManager.instance.primaryFocus?.unfocus();
-    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    await $.tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-    await tester.tap(submitButton);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    await submitButton.tap();
+    await $.tester.pumpAndSettle(const Duration(seconds: 2));
   }
 }

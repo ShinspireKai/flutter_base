@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show appFlavor;
 import 'package:inspection_app/core/arch/logger/app_logger_impl.dart';
 import 'package:inspection_app/core/di.dart';
 import 'package:inspection_app/core/di/features_di.dart';
@@ -22,6 +23,7 @@ import 'package:inspection_app/features/auth/domain/usecases/get_cached_user_use
 import 'package:inspection_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:inspection_app/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:inspection_app/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:inspection_app/firebase_options_dev.dart' as dev_firebase_options;
 import 'package:inspection_app/features/inspector_home/domain/usecases/get_inspector_profile_usecase.dart';
 import 'package:inspection_app/features/inspector_home/inspector/domain/usecases/get_today_inspections_usecase.dart';
 import 'package:inspection_app/features/inspector_home/maintenance/domain/usecases/get_maintenance_tasks_usecase.dart';
@@ -64,13 +66,21 @@ String? _extractTicketNo(Uri uri) {
 /// closure) và có @pragma('vm:entry-point') để Flutter giữ lại lúc build release.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: _firebaseOptionsForFlavor());
   logger.i('FCM background message: ${message.messageId}');
+}
+
+/// Chọn FirebaseOptions theo flavor build (--flavor dev/staging/prod) —
+/// mỗi flavor có package/bundle ID riêng nên cần app Firebase riêng.
+/// staging chưa có app Firebase riêng, tạm dùng chung config prod.
+FirebaseOptions _firebaseOptionsForFlavor() {
+  if (appFlavor == 'dev') return dev_firebase_options.DefaultFirebaseOptions.currentPlatform;
+  return DefaultFirebaseOptions.currentPlatform;
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: _firebaseOptionsForFlavor());
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await configureDependencies();

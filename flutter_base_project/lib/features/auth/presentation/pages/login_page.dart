@@ -7,6 +7,7 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../mvp/BaseView.dart';
 import '../../../../core/gen/colors.gen.dart';
 import '../../../../core/router/auto_route_config.dart';
+import '../../../../testing/test_keys.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
@@ -114,7 +115,7 @@ class _LoginPageState extends BaseViewState<LoginPresenter, LoginPage>
         }
       },
       child: Scaffold(
-        key: const Key('login_page_scaffold'),
+        key: TestKeys.loginPageScaffold,
         appBar: AppBar(
           title: Text(
             AppLocalizations.of(context)!.title_login_appbar,

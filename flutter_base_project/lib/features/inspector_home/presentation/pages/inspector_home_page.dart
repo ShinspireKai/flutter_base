@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspection_app/core/gen/colors.gen.dart';
 import 'package:inspection_app/core/router/auto_route_config.dart';
+import 'package:inspection_app/testing/test_keys.dart';
 
 import '../../../../../mvp/BaseView.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -193,7 +194,7 @@ class _InspectorHomePageState
         }
       },
       child: Scaffold(
-        key: const Key('inspector_home_page_scaffold'),
+        key: TestKeys.inspectorHomePageScaffold,
         appBar: _buildAppBar(),
         body: BlocBuilder<InspectorHomeBloc, InspectorHomeState>(
           builder: (context, state) {

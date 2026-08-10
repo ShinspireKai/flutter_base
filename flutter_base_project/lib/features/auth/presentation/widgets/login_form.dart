@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inspection_app/testing/test_keys.dart';
 import 'package:inspection_app/util/widgets/custom_button.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
@@ -77,7 +78,7 @@ class _LoginFormState extends State<LoginForm> {
             children: [
               // ── 公司代碼 ──────────────────────────────────────────────────
               CustomTextField(
-                key: const Key('login_company_code_field'),
+                key: TestKeys.loginCompanyCodeField,
                 labelText: l10n.companyCodeLabel,
                 hintText: l10n.companyCodeLabel,
                 controller: _companyCodeCtrl,
@@ -98,7 +99,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── 帳號 ──────────────────────────────────────────────────
               CustomTextField(
-                key: const Key('login_account_field'),
+                key: TestKeys.loginAccountField,
                 labelText: l10n.accountLabel,
                 hintText: l10n.accountHint,
                 controller: _accountNumberCtrl,
@@ -119,7 +120,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── 密碼 ───────────────────────────────────────────────
               CustomTextField(
-                key: const Key('login_password_field'),
+                key: TestKeys.loginPasswordField,
                 labelText: l10n.passwordLabel,
                 hintText: l10n.passwordLabel,
                 controller: _passwordCtrl,
@@ -175,7 +176,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // ── Submit button ──────────────────────────────────────────
               CustomButton(
-                key: const Key('login_submit_button'),
+                key: TestKeys.loginSubmitButton,
                 text: l10n.loginButton,
                 isLoading: isLoading,
                 elevation: 0,

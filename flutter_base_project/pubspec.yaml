@@ -67,11 +67,25 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  # E2E testing framework — xem integration_test/README.md
+  patrol: ^4.8.0
   flutter_lints: ^6.0.0
   build_runner: ^2.4.13
   injectable_generator: ^2.6.2
   auto_route_generator: ^9.0.0
   flutter_gen_runner: 5.7.0
+
+# Cấu hình cho `patrol_cli` (lệnh `patrol test`/`patrol bootstrap`/`patrol doctor`)
+# — xem integration_test/README.md mục "Patrol" để biết chi tiết setup native.
+patrol:
+  app_name: Inspection App
+  android:
+    package_name: com.shinda.inspectionapp
+  ios:
+    bundle_id: com.shinda.inspectionapp
+  # Giữ nguyên thư mục integration_test/ (quy ước Flutter) thay vì patrol_test/
+  # mặc định, để không phá vỡ tooling hiện có (test_driver/, run_e2e_with_video.sh).
+  test_directory: integration_test
 
 flutter:
   uses-material-design: true

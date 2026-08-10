@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
+
+import 'package:inspection_app/testing/test_keys.dart';
 
 /// Page Object cho InspectorHomePage — trang chủ của 巡檢人員 (Inspector)
 /// sau khi đăng nhập thành công.
 class InspectorHomePageObject {
-  InspectorHomePageObject(this.tester);
+  InspectorHomePageObject(this.$);
 
-  final WidgetTester tester;
+  final PatrolIntegrationTester $;
 
-  Finder get scaffold => find.byKey(const Key('inspector_home_page_scaffold'));
+  PatrolFinder get scaffold => $(TestKeys.inspectorHomePageScaffold);
 }
